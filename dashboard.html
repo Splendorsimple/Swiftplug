@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Workspace — SwiftPlug</title>
+<link rel="icon" href="assets/favicon.png" />
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=JetBrains+Mono:wght@400;600&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css" />
+<script src="https://js.paystack.co/v1/inline.js"></script>
+</head>
+<body>
+<div id="navbar" class="navbar"></div>
+
+<main class="container dash-layout">
+  <aside>
+    <nav class="dash-nav" id="dash-nav">
+      <button data-section="get" class="active">➕ Get a number</button>
+      <button data-section="mine">📱 My numbers</button>
+      <button data-section="wallet">💳 Wallet</button>
+    </nav>
+    <div class="card wallet-summary" style="display:none" id="wallet-summary-card">
+      <p class="muted" style="margin:0;font-size:.8rem">Wallet balance</p>
+      <p class="amount" id="sidebar-balance">₦0</p>
+      <button class="link" id="add-funds-link" style="background:none;border:none;padding:0">Add funds →</button>
+    </div>
+  </aside>
+
+  <section>
+    <!-- GET A NUMBER -->
+    <div id="section-get">
+      <div class="segmented" id="kind-toggle" style="margin-bottom:20px">
+        <button data-kind="disposable" class="active">One-time</button>
+        <button data-kind="real">Longer-term</button>
+      </div>
+
+      <!-- Disposable flow -->
+      <div id="disposable-flow">
+        <div id="service-catalog">
+          <input id="service-search" placeholder="Find a service..." />
+          <div class="service-grid" id="service-grid"></div>
+        </div>
+        <div id="disposable-purchase-form" class="hidden" style="margin-top:16px">
+          <button class="link" id="back-to-services" style="background:none;border:none;padding:0;margin-bottom:12px">← Back to services</button>
+          <h3 id="chosen-service-name"></h3>
+          <div class="field">
+            <input id="dcountry-input" placeholder="Search country or phone code (e.g. Nigeria or +234)" autocomplete="off" />
+            <div id="dcountry-results" class="card hidden" style="position:relative;margin-top:4px;padding:4px;max-height:220px;overflow-y:auto"></div>
+          </div>
+          <div id="dqty-wrap" class="hidden">
+            <div class="field" style="display:flex;align-items:center;gap:10px">
+              <label style="margin:0">Quantity</label>
+              <div class="qty-control" style="width:120px"><button id="dqty-minus">−</button><span id="dqty-value" class="mono">1</span><button id="dqty-plus">+</button></div>
+              <span class="muted mono" id="dmax-note" style="font-size:.8rem"></span>
+            </div>
+            <div class="card" style="margin:12px 0">
+              <div style="display:flex;justify-content:space-between;font-size:.9rem"><span class="muted">Subtotal</span><span id="dsubtotal" class="mono">₦0</span></div>
+              <div id="ddiscount-row" class="hidden" style="display:flex;justify-content:space-between;font-size:.9rem;color:rgb(var(--highlight))"><span>Discount</span><span id="ddiscount-amt" class="mono"></span></div>
+              <div style="display:flex;justify-content:space-between;font-weight:700;margin-top:8px;padding-top:8px;border-top:1px solid rgba(var(--line),.1)"><span>Total</span><span id="dtotal" class="mono">₦0</span></div>
+            </div>
+            <p class="error-text hidden" id="derror"></p>
+            <button class="btn-primary" id="dbuy-btn">Buy</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Real numbers flow -->
+      <div id="real-flow" class="hidden">
+        <div class="field">
+          <input id="rcountry-input" placeholder="Search country or phone code (e.g. Nigeria or +234)" autocomplete="off" />
+          <div id="rcountry-results" class="card hidden" style="position:relative;margin-top:4px;padding:4px;max-height:220px;overflow-y:auto"></div>
+        </div>
+        <div id="rplans" class="card-grid" style="margin-top:12px"></div>
+        <div id="rqty-wrap" class="hidden" style="margin-top:12px">
+          <div class="field" style="display:flex;align-items:center;gap:10px">
+            <label style="margin:0">Quantity</label>
+            <div class="qty-control" style="width:120px"><button id="rqty-minus">−</button><span id="rqty-value" class="mono">1</span><button id="rqty-plus">+</button></div>
+          </div>
+          <div class="card" style="margin:12px 0">
+            <div style="display:flex;justify-content:space-between;font-size:.9rem"><span class="muted">Subtotal</span><span id="rsubtotal" class="mono">₦0</span></div>
+            <div id="rdiscount-row" class="hidden" style="display:flex;justify-content:space-between;font-size:.9rem;color:rgb(var(--highlight))"><span>Discount</span><span id="rdiscount-amt" class="mono"></span></div>
+            <div style="display:flex;justify-content:space-between;font-weight:700;margin-top:8px;padding-top:8px;border-top:1px solid rgba(var(--line),.1)"><span>Total</span><span id="rtotal" class="mono">₦0</span></div>
+          </div>
+          <p class="error-text hidden" id="rerror"></p>
+          <button class="btn-primary" id="rbuy-btn">Buy</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MY NUMBERS -->
+    <div id="section-mine" class="hidden">
+      <div id="my-numbers-list" class="card-grid"></div>
+      <p id="no-numbers-msg" class="muted hidden">No active numbers yet. Get your first line from "Get a number".</p>
+    </div>
+
+    <!-- WALLET -->
+    <div id="section-wallet" class="hidden">
+      <div class="card" style="margin-bottom:20px">
+        <h3 style="margin-top:0">Top up wallet</h3>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px" id="amount-presets"></div>
+        <div class="field"><input type="number" id="topup-amount" min="100" value="1000" /></div>
+        <button class="btn-primary" id="pay-btn">Pay ₦1,000</button>
+        <p id="topup-msg" class="muted" style="margin-top:8px"></p>
+      </div>
+      <h3>History</h3>
+      <div id="wallet-history" class="card" style="padding:0"></div>
+      <p id="no-tx-msg" class="muted hidden">No transactions yet.</p>
+    </div>
+  </section>
+</main>
+
+<script type="module" src="js/dashboard.js"></script>
+</body>
+</html>

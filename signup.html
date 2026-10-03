@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Create your account — SwiftPlug</title>
+<link rel="icon" href="assets/favicon.png" />
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=JetBrains+Mono:wght@400;600&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+<div id="navbar" class="navbar"></div>
+<main class="container-sm" style="margin-top:60px">
+  <div id="signup-form-wrap">
+    <h1 style="font-size:1.6rem">Create your account</h1>
+    <form id="signup-form">
+      <div class="field"><input type="email" id="email" placeholder="Email" required /></div>
+      <div class="field"><input type="password" id="password" placeholder="Password (min 6 characters)" minlength="6" required /></div>
+      <div class="field" style="display:flex;gap:8px;align-items:flex-start">
+        <input type="checkbox" id="agree" style="width:auto;margin-top:3px" required />
+        <label style="margin:0" for="agree">I agree to the <a href="terms.html" class="link">Terms of Service</a> and acceptable use policy.</label>
+      </div>
+      <p class="error-text hidden" id="signup-error"></p>
+      <button class="btn-primary" type="submit" id="signup-btn">Create account</button>
+    </form>
+    <p class="muted" style="text-align:center;margin:16px 0">or</p>
+    <button class="btn-outline" id="google-btn">Continue with Google</button>
+    <p style="text-align:center;margin-top:20px" class="muted">
+      Already have an account? <a href="login.html" class="link">Sign in</a>
+    </p>
+  </div>
+  <div id="signup-done" class="hidden" style="text-align:center">
+    <h1 style="font-size:1.4rem">Check your email</h1>
+    <p class="muted">We sent a confirmation link to <strong id="sent-email"></strong>. Confirm it, then <a href="login.html" class="link">sign in</a>.</p>
+  </div>
+</main>
+<script type="module" src="js/signup.js"></script>
+</body>
+</html>

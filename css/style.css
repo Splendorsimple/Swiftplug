@@ -1,0 +1,211 @@
+/* ============================================================
+   SwiftPlug — plain CSS, no framework.
+   Colors live ONLY here, as CSS variables. Dark is default;
+   adding class="light" to <html> (done by js/theme.js) switches them.
+   ============================================================ */
+
+:root {
+  --bg: 12, 28, 20;
+  --surface: 19, 40, 30;
+  --surface2: 27, 54, 41;
+  --line: 255, 255, 255;
+  --fg: 241, 245, 233;
+  --muted: 147, 163, 153;
+  --accent: 198, 224, 75;
+  --accentink: 16, 32, 15;
+  --highlight: 158, 178, 60;
+  color-scheme: dark;
+}
+
+html.light {
+  --bg: 244, 238, 221;
+  --surface: 255, 255, 255;
+  --surface2: 235, 228, 207;
+  --line: 0, 0, 0;
+  --fg: 26, 26, 26;
+  --muted: 107, 107, 99;
+  --accent: 198, 224, 75;
+  --accentink: 16, 32, 15;
+  --highlight: 30, 86, 49;
+  color-scheme: light;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: rgb(var(--bg));
+  color: rgb(var(--fg));
+  font-family: 'DM Sans', sans-serif;
+  transition: background-color .2s ease, color .2s ease;
+}
+
+h1, h2, h3, .heading, button, .btn {
+  font-family: 'Space Grotesk', sans-serif;
+}
+
+a { color: inherit; text-decoration: none; }
+
+.mono { font-family: 'JetBrains Mono', monospace; }
+
+.container { max-width: 960px; margin: 0 auto; padding: 0 16px; }
+.container-sm { max-width: 420px; margin: 0 auto; padding: 0 16px; }
+
+/* ---------------- Navbar ---------------- */
+.navbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-bottom: 1px solid rgba(var(--line), .1);
+  position: sticky;
+  top: 0;
+  background: rgb(var(--bg));
+  z-index: 20;
+}
+.navbar .logo { display: flex; align-items: center; gap: 8px; }
+.navbar .logo img { height: 36px; width: 36px; }
+.navbar .logo span { font-weight: 700; font-size: 1.15rem; }
+.navbar .logo .accent { color: rgb(var(--highlight)); }
+.nav-right { display: flex; align-items: center; gap: 10px; }
+.nav-right a, .nav-right button { font-weight: 600; font-size: .9rem; background: none; border: none; color: rgb(var(--fg)); cursor: pointer; }
+.theme-toggle {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: rgb(var(--surface2)); display: flex; align-items: center; justify-content: center;
+  border: none; cursor: pointer; font-size: 16px;
+}
+.pill-btn {
+  padding: 10px 18px; border-radius: 10px; background: rgb(var(--accent)); color: rgb(var(--accentink));
+  font-weight: 700; border: none; cursor: pointer; font-size: .9rem;
+}
+.wallet-chip { font-family: 'JetBrains Mono', monospace; font-size: .9rem; }
+
+/* ---------------- Buttons & inputs ---------------- */
+.btn-primary {
+  width: 100%; padding: 14px; border-radius: 12px; background: rgb(var(--accent)); color: rgb(var(--accentink));
+  font-weight: 700; border: none; cursor: pointer; font-size: .95rem;
+}
+.btn-primary:disabled { opacity: .5; cursor: default; }
+.btn-secondary {
+  padding: 10px 16px; border-radius: 10px; background: rgb(var(--surface2)); color: rgb(var(--fg));
+  border: none; cursor: pointer; font-size: .9rem;
+}
+.btn-outline {
+  width: 100%; padding: 14px; border-radius: 12px; background: transparent; color: rgb(var(--fg));
+  border: 1px solid rgba(var(--line), .15); cursor: pointer; font-weight: 600; font-size: .95rem;
+}
+input, select, textarea {
+  width: 100%; padding: 12px 14px; border-radius: 10px; border: 1px solid rgba(var(--line), .12);
+  background: rgb(var(--bg)); color: rgb(var(--fg)); font-family: inherit; font-size: .95rem;
+}
+input::placeholder { color: rgb(var(--muted)); }
+label { font-size: .85rem; color: rgb(var(--muted)); display: block; margin-bottom: 6px; }
+.field { margin-bottom: 14px; }
+.error-text { color: #ef4444; font-size: .85rem; margin: 6px 0; }
+.muted { color: rgb(var(--muted)); }
+.link { color: rgb(var(--highlight)); font-weight: 600; cursor: pointer; }
+
+/* ---------------- Cards ---------------- */
+.card {
+  background: rgb(var(--surface)); border: 1px solid rgba(var(--line), .08);
+  border-radius: 18px; padding: 18px;
+}
+.card-grid { display: grid; gap: 12px; }
+
+/* ---------------- Hero / landing ---------------- */
+.hero {
+  margin-top: 24px; border-radius: 24px; padding: 32px 24px;
+  background: rgb(var(--surface)); border: 1px solid rgba(var(--line), .08);
+  background-image: linear-gradient(rgba(var(--line),.05) 1px, transparent 1px),
+                     linear-gradient(90deg, rgba(var(--line),.05) 1px, transparent 1px);
+  background-size: 28px 28px;
+}
+.eyebrow {
+  display: inline-flex; align-items: center; gap: 6px; font-size: .7rem; letter-spacing: .12em;
+  padding: 6px 12px; border-radius: 999px; border: 1px solid rgba(var(--line), .1); background: rgb(var(--bg));
+  color: rgb(var(--muted));
+}
+.hero h1 { font-size: 2.4rem; line-height: 1.1; margin: 20px 0 0; }
+.hero h1 .accent { color: rgb(var(--highlight)); }
+.hero p { max-width: 520px; color: rgb(var(--muted)); font-size: 1.05rem; }
+.perks { list-style: none; padding: 0; margin: 20px 0 0; }
+.perks li { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; font-size: .9rem; }
+
+.segmented { display: inline-flex; padding: 4px; border-radius: 999px; background: rgb(var(--surface)); border: 1px solid rgba(var(--line), .08); }
+.segmented button {
+  padding: 8px 16px; border-radius: 999px; border: none; background: none; cursor: pointer;
+  font-weight: 600; font-size: .85rem; color: rgb(var(--muted));
+}
+.segmented button.active { background: rgb(var(--accent)); color: rgb(var(--accentink)); }
+
+.two-col { display: grid; gap: 20px; margin-top: 24px; }
+@media (min-width: 720px) { .two-col { grid-template-columns: 1fr 1fr; } }
+
+.order-preview { background: rgb(var(--accent)); color: rgb(var(--accentink)); border-radius: 24px; padding: 20px; display: flex; flex-direction: column; }
+.order-preview .tag { font-size: .75rem; padding: 4px 10px; border-radius: 999px; background: rgba(16,32,15,.1); font-weight: 700; }
+.order-preview hr { border: none; border-top: 1px solid rgba(16,32,15,.2); margin: 16px 0; }
+.qty-control { display: flex; align-items: center; justify-content: space-between; border-radius: 10px; background: rgb(var(--bg)); border: 1px solid rgba(var(--line), .12); }
+.qty-control button { background: none; border: none; padding: 12px; font-size: 1rem; cursor: pointer; color: rgb(var(--fg)); }
+.qty-control span { font-family: 'JetBrains Mono', monospace; }
+
+/* ---------------- Service catalog ---------------- */
+.service-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-top: 16px; }
+@media (min-width: 600px) { .service-grid { grid-template-columns: repeat(3, 1fr); } }
+.service-card {
+  display: flex; flex-direction: column; gap: 4px; align-items: flex-start; text-align: left;
+  padding: 14px; border-radius: 14px; background: rgb(var(--surface)); border: 1px solid rgba(var(--line), .06);
+  cursor: pointer; font-family: inherit;
+}
+.service-card:hover { border-color: rgb(var(--accent)); }
+.service-icon { width: 32px; height: 32px; border-radius: 8px; background: rgba(var(--accent), .15); color: rgb(var(--highlight)); display: flex; align-items: center; justify-content: center; font-weight: 700; }
+
+/* ---------------- Number cards / inbox ---------------- */
+.number-card { display: flex; flex-direction: column; gap: 10px; }
+.number-card .head { display: flex; justify-content: space-between; align-items: center; }
+.timer { font-family: 'JetBrains Mono', monospace; }
+.timer.low { color: #ef4444; }
+.inbox { max-height: 190px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; }
+.message-bubble { background: rgb(var(--surface2)); border-radius: 10px; padding: 8px 10px; font-size: .9rem; }
+.message-bubble .from { font-size: .75rem; color: rgb(var(--muted)); margin-bottom: 2px; }
+
+/* ---------------- Dashboard layout ---------------- */
+.dash-layout { display: grid; gap: 20px; margin: 24px auto; }
+@media (min-width: 720px) { .dash-layout { grid-template-columns: 220px 1fr; } }
+.dash-nav { display: flex; gap: 8px; overflow-x: auto; }
+@media (min-width: 720px) { .dash-nav { flex-direction: column; } }
+.dash-nav button {
+  display: flex; align-items: center; gap: 8px; padding: 12px 16px; border-radius: 12px; border: none;
+  background: none; cursor: pointer; font-weight: 600; font-size: .9rem; color: rgb(var(--fg)); white-space: nowrap;
+}
+.dash-nav button.active { background: rgb(var(--accent)); color: rgb(var(--accentink)); }
+.wallet-summary { margin-top: 16px; padding: 16px; border-radius: 16px; }
+.wallet-summary .amount { font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 1.5rem; }
+
+/* ---------------- Admin ---------------- */
+.admin-layout { display: flex; flex-direction: column; gap: 0; }
+@media (min-width: 720px) { .admin-layout { flex-direction: row; } }
+.admin-sidebar { display: flex; gap: 4px; overflow-x: auto; padding: 12px 0; border-bottom: 1px solid rgba(var(--line), .1); }
+@media (min-width: 720px) {
+  .admin-sidebar { flex-direction: column; width: 200px; border-bottom: none; border-right: 1px solid rgba(var(--line), .1); padding: 16px 12px 16px 0; }
+}
+.admin-sidebar button {
+  padding: 10px 14px; border-radius: 10px; border: none; background: none; cursor: pointer;
+  font-weight: 600; font-size: .85rem; white-space: nowrap; color: rgb(var(--fg)); text-align: left;
+}
+.admin-sidebar button.active { background: rgb(var(--accent)); color: rgb(var(--accentink)); }
+.admin-main { flex: 1; padding: 16px 0; }
+table { width: 100%; border-collapse: collapse; font-size: .88rem; }
+th { text-align: left; color: rgb(var(--muted)); border-bottom: 1px solid rgba(var(--line), .1); padding: 8px 10px 8px 0; }
+td { padding: 8px 10px 8px 0; border-bottom: 1px solid rgba(var(--line), .05); }
+.row-actions button { background: none; border: none; cursor: pointer; font-size: .85rem; font-weight: 600; margin-right: 10px; }
+.row-actions .edit { color: rgb(var(--highlight)); }
+.row-actions .delete { color: #ef4444; }
+.admin-form { display: grid; gap: 10px; margin-bottom: 16px; }
+.admin-form .form-row { display: flex; align-items: center; gap: 10px; }
+.admin-form .form-row label { width: 160px; margin: 0; flex-shrink: 0; }
+.stat-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+.stat-card .value { font-size: 1.6rem; font-weight: 800; color: rgb(var(--highlight)); }
+.stat-card .label { font-size: .85rem; color: rgb(var(--muted)); margin-top: 4px; }
+
+footer { max-width: 960px; margin: 0 auto; padding: 32px 16px; display: flex; gap: 16px; font-size: .8rem; color: rgb(var(--muted)); border-top: 1px solid rgba(var(--line), .1); }
+.hidden { display: none !important; }
