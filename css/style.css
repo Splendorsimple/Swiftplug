@@ -237,3 +237,50 @@ footer { max-width: 960px; margin: 0 auto; padding: 32px 16px; display: flex; ga
                             font-family: inherit;
                             }
                             .nav-menu-item:hover { background: rgb(var(--surface2)); }
+/* SwiftPlug UI v2 — look only, no new content. Loaded AFTER style.css.
+   Delete this one file (and its <link> lines) to go back to the old look. */
+
+:root { --radius: 22px; --shadow: 0 10px 30px rgba(0,0,0,.25); }
+html.light { --shadow: 0 8px 24px rgba(60,50,20,.10); }
+body { -webkit-tap-highlight-color: transparent; }
+
+/* softer, rounder cards, inputs, buttons */
+.card { border-radius: var(--radius); box-shadow: var(--shadow); border-color: rgba(var(--line), .07); }
+input, select, textarea { border-radius: 14px; padding: 14px 16px; }
+input:focus, select:focus, textarea:focus { outline: none; border-color: rgb(var(--accent)); box-shadow: 0 0 0 3px rgba(var(--accent), .18); }
+.btn-primary, .btn-outline { border-radius: 16px; padding: 16px; }
+.btn-primary { box-shadow: 0 8px 20px rgba(var(--accent), .22); transition: transform .12s ease; }
+.btn-primary:active, .dash-nav button:active, .service-card:active { transform: scale(.97); }
+.pill-btn { border-radius: 999px; }
+.segmented { padding: 5px; }
+
+/* dashboard menu: the same 3 buttons, shown as rounded tiles */
+.dash-nav { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; overflow: visible; }
+@media (min-width: 720px) { .dash-nav { grid-template-columns: 1fr; } }
+.dash-nav button {
+  flex-direction: column; justify-content: center; text-align: center; white-space: normal; gap: 6px;
+  padding: 18px 8px; border-radius: 22px; background: rgb(var(--surface));
+  border: 1px solid rgba(var(--line), .07); box-shadow: var(--shadow);
+  color: rgb(var(--fg)); font-size: .8rem; line-height: 1.25; transition: transform .12s ease;
+}
+@media (min-width: 720px) { .dash-nav button { flex-direction: row; justify-content: flex-start; text-align: left; font-size: .9rem; padding: 14px 18px; } }
+.dash-nav button.active { background: rgb(var(--accent)); color: rgb(var(--accentink)); border-color: transparent; }
+
+/* wallet summary: rounded gradient card */
+.wallet-summary {
+  border-radius: 24px; padding: 20px;
+  background: linear-gradient(135deg, rgb(var(--surface2)), rgb(var(--surface)));
+  border: 1px solid rgba(var(--accent), .22);
+}
+.wallet-summary .amount { font-size: 1.9rem; margin: 4px 0 10px; }
+
+/* service tiles */
+#service-search { border-radius: 999px; padding-left: 20px; }
+.service-card {
+  border-radius: 20px; padding: 16px; gap: 6px; background: rgb(var(--surface));
+  border: 1px solid rgba(var(--line), .07); box-shadow: var(--shadow);
+  color: rgb(var(--fg)); transition: transform .12s ease, border-color .15s;
+}
+.service-icon { width: 42px; height: 42px; border-radius: 14px; font-size: 1.05rem; margin-bottom: 4px; }
+html:not(.light) .service-icon { color: rgb(var(--accent)); }
+                                
