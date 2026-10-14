@@ -339,3 +339,81 @@ a.service-card { text-decoration: none; color: inherit; }
 .legal a { color: rgb(var(--highlight)); font-weight: 600; }
 html:not(.light) .legal a { color: rgb(var(--accent)); }
 .legal-nav { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 36px; padding-top: 18px; border-top: 1px solid rgba(var(--line), .1); font-size: .85rem; }
+/* ---------- Admin dashboard v2 ---------- */
+.admin-layout { gap: 0; }
+.admin-main { padding: 6px 0 80px; min-width: 0; flex: 1; }
+.admin-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 14px; }
+.admin-head h2 { margin: 0; font-size: 1.5rem; letter-spacing: -.01em; }
+.admin-hint { font-size: .85rem; line-height: 1.55; margin: 0 0 16px; }
+
+/* section tabs as pills */
+.admin-sidebar { display: flex; gap: 8px; overflow-x: auto; padding: 14px 0 12px; border-bottom: none; scrollbar-width: none; }
+.admin-sidebar::-webkit-scrollbar { display: none; }
+.admin-sidebar button {
+  flex-shrink: 0; padding: 11px 18px; border-radius: 999px; font-size: .85rem; font-weight: 700;
+  background: rgb(var(--surface)); border: 1px solid rgba(var(--line), .08); color: rgb(var(--fg));
+}
+.admin-sidebar button.active { background: rgb(var(--accent)); color: rgb(var(--accentink)); border-color: transparent; }
+@media (min-width: 720px) {
+  .admin-sidebar { flex-direction: column; width: 220px; padding: 16px 20px 16px 0; border-right: none; overflow: visible; }
+  .admin-sidebar button { border-radius: 16px; text-align: left; }
+}
+
+/* forms */
+.admin-form { padding: 18px; margin-bottom: 18px; }
+.admin-form .form-row { display: flex; flex-direction: column; align-items: stretch; gap: 6px; }
+.admin-form .form-row label { width: auto; margin: 0; font-weight: 600; }
+.admin-form .form-row input[type="checkbox"] { align-self: flex-start; }
+.form-actions { display: flex; gap: 10px; margin-top: 6px; }
+.form-actions button { flex: 1; padding: 13px; border-radius: 14px; font-weight: 700; }
+@media (min-width: 720px) {
+  .admin-form .form-row { flex-direction: row; align-items: center; gap: 12px; }
+  .admin-form .form-row label { width: 190px; flex-shrink: 0; }
+  .form-actions button { flex: none; padding: 12px 24px; }
+}
+
+/* status badges and action pills */
+.badge { display: inline-block; padding: 4px 11px; border-radius: 999px; font-size: .75rem; font-weight: 700; }
+.badge.on { background: rgba(var(--accent), .18); color: rgb(var(--highlight)); }
+html:not(.light) .badge.on { color: rgb(var(--accent)); }
+.badge.off { background: rgba(239, 68, 68, .15); color: #ef4444; }
+.row-actions button {
+  min-height: 38px; padding: 8px 16px; margin: 0 8px 0 0; border-radius: 999px;
+  border: 1px solid currentColor; background: none; font-size: .82rem; font-weight: 700; cursor: pointer;
+}
+.empty {
+  text-align: center; padding: 36px 16px; border-radius: 20px; color: rgb(var(--muted));
+  border: 1px dashed rgba(var(--line), .18); font-size: .92rem;
+}
+
+/* tables: real table on desktop, stacked cards on phones (no sideways scrolling) */
+.admin-main table { border-collapse: separate; border-spacing: 0; }
+.admin-main th { font-size: .72rem; letter-spacing: .08em; text-transform: uppercase; padding: 10px 12px 10px 0; }
+.admin-main td { padding: 14px 12px 14px 0; vertical-align: middle; overflow-wrap: break-word; }
+.admin-main td.row-actions { white-space: nowrap; }
+@media (max-width: 719px) {
+  .admin-main table, .admin-main tbody, .admin-main tr, .admin-main td { display: block; width: 100%; }
+  .admin-main thead { display: none; }
+  .admin-main tr {
+    background: rgb(var(--surface)); border: 1px solid rgba(var(--line), .08); border-radius: 20px;
+    padding: 6px 16px 14px; margin-bottom: 12px; box-shadow: var(--shadow);
+  }
+  .admin-main td {
+    display: flex; justify-content: space-between; align-items: center; gap: 16px;
+    padding: 11px 0; border-bottom: 1px solid rgba(var(--line), .06); text-align: right;
+  }
+  .admin-main td::before { content: attr(data-label); color: rgb(var(--muted)); font-size: .78rem; text-align: left; flex-shrink: 0; }
+  .admin-main td.row-actions { border-bottom: none; justify-content: flex-start; padding-top: 14px; }
+  .admin-main td.row-actions::before { content: none; }
+  .row-actions .edit { color: rgb(var(--highlight)); }
+  html:not(.light) .row-actions .edit { color: rgb(var(--accent)); }
+}
+
+/* analytics */
+.stat-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+@media (min-width: 720px) { .stat-grid { grid-template-columns: repeat(3, 1fr); } }
+.stat-card { padding: 18px; }
+.stat-card .value { font-size: 1.5rem; line-height: 1.2; word-break: break-word; }
+
+/* the floating Support button would cover Save/Cancel on admin pages, so hide it there */
+body:has(.admin-layout) .sp-fab { display: none; }
