@@ -1,17 +1,20 @@
 import { supabase } from './supabaseClient.js'
 
-// Generic CRUD renderer for simple admin tables (providers, services, discounts).
+// Generic CRUD renderer for simple admin tables (providers, services, discounts, support links).
 // This is what makes "customize everything from admin" possible without a bespoke
 // page per data type. containerEl gets fully replaced with a form + table.
-export function renderAdminTable(containerEl, { table, title, columns }) {
+const esc = (v) => String(v ?? '').replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]))
+
+export function renderAdminTable(containerEl, { table, title, columns, hint }) {
   let rows = []
   let editingId = null
   let adding = false
   let form = {}
+  let loadError = ''
 
   async function load() {
     const { data, error } = await supabase.from(table).select('*').order('id', { ascending: false })
-    if (!error) rows = data
+    if (error) { loadError = error.message; rows = [] } else { loadError = ''; rows = data || [] }
     draw()
   }
 
@@ -43,28 +46,37 @@ export function renderAdminTable(containerEl, { table, title, columns }) {
     const val = form[col.key]
     if (col.type === 'boolean') return `<input type="checkbox" data-key="${col.key}" ${val ? 'checked' : ''} />`
     if (col.type === 'select') {
-      return `<select data-key="${col.key}"><option value="">--</option>${col.options.map(o => `<option value="${o}" ${val === o ? 'selected' : ''}>${o}</option>`).join('')}</select>`
+      return `<select data-key="${col.key}"><option value="">--</option>${col.options.map(o => `<option value="${esc(o)}" ${val === o ? 'selected' : ''}>${esc(o)}</option>`).join('')}</select>`
     }
-    return `<input type="${col.type === 'number' ? 'number' : 'text'}" data-key="${col.key}" value="${val ?? ''}" />`
+    return `<input type="${col.type === 'number' ? 'number' : 'text'}" data-key="${col.key}" value="${esc(val)}" />`
+  }
+
+  function cellHtml(col, row) {
+    const v = row[col.key]
+    if (col.type === 'boolean') return v ? '<span class="badge on">Yes</span>' : '<span class="badge off">No</span>'
+    return esc(v)
   }
 
   function draw() {
     containerEl.innerHTML = `
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
-        <h2 style="margin:0">${title}</h2>
+      <div class="admin-head">
+        <h2>${esc(title)}</h2>
         <button class="pill-btn" id="add-btn">+ Add</button>
       </div>
+      ${hint ? `<p class="muted admin-hint">${esc(hint)}</p>` : ''}
+      ${loadError ? `<p class="error-text">Could not load this list: ${esc(loadError)}</p>` : ''}
       ${(adding || editingId) ? `
         <div class="card admin-form" id="form-card">
-          ${columns.map(c => `<div class="form-row"><label>${c.label}</label>${fieldHtml(c)}</div>`).join('')}
-          <div style="display:flex;gap:8px"><button class="btn-secondary" id="save-btn" style="background:rgb(var(--accent));color:rgb(var(--accentink))">Save</button><button class="btn-secondary" id="cancel-btn">Cancel</button></div>
+          ${columns.map(c => `<div class="form-row"><label>${esc(c.label)}</label>${fieldHtml(c)}</div>`).join('')}
+          <div class="form-actions"><button class="btn-secondary" id="save-btn" style="background:rgb(var(--accent));color:rgb(var(--accentink))">Save</button><button class="btn-secondary" id="cancel-btn">Cancel</button></div>
         </div>
       ` : ''}
+      ${rows.length ? `
       <table>
-        <thead><tr>${columns.map(c => `<th>${c.label}</th>`).join('')}<th></th></tr></thead>
+        <thead><tr>${columns.map(c => `<th>${esc(c.label)}</th>`).join('')}<th></th></tr></thead>
         <tbody>
           ${rows.map(r => `
-            <tr>${columns.map(c => `<td>${String(r[c.key] ?? '')}</td>`).join('')}
+            <tr>${columns.map(c => `<td data-label="${esc(c.label)}">${cellHtml(c, r)}</td>`).join('')}
               <td class="row-actions">
                 <button class="edit" data-edit="${r.id}">Edit</button>
                 <button class="delete" data-del="${r.id}">Delete</button>
@@ -72,24 +84,21 @@ export function renderAdminTable(containerEl, { table, title, columns }) {
             </tr>
           `).join('')}
         </tbody>
-      </table>
+      </table>` : (loadError ? '' : '<div class="empty">Nothing here yet. Tap <strong>+ Add</strong> to create the first one.</div>')}
     `
 
     containerEl.querySelector('#add-btn').addEventListener('click', startAdd)
     const formCard = containerEl.querySelector('#form-card')
     if (formCard) {
       formCard.querySelectorAll('[data-key]').forEach(input => {
-        input.addEventListener('input', () => {
-          form[input.dataset.key] = input.type === 'checkbox' ? input.checked : input.value
-        })
-        input.addEventListener('change', () => {
-          form[input.dataset.key] = input.type === 'checkbox' ? input.checked : input.value
-        })
+        const sync = () => { form[input.dataset.key] = input.type === 'checkbox' ? input.checked : input.value }
+        input.addEventListener('input', sync)
+        input.addEventListener('change', sync)
       })
       containerEl.querySelector('#save-btn').addEventListener('click', save)
       containerEl.querySelector('#cancel-btn').addEventListener('click', cancel)
     }
-    containerEl.querySelectorAll('[data-edit]').forEach(b => b.addEventListener('click', () => startEdit(rows.find(r => r.id === b.dataset.edit))))
+    containerEl.querySelectorAll('[data-edit]').forEach(b => b.addEventListener('click', () => startEdit(rows.find(r => String(r.id) === b.dataset.edit))))
     containerEl.querySelectorAll('[data-del]').forEach(b => b.addEventListener('click', () => remove(b.dataset.del)))
   }
 
