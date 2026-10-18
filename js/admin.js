@@ -74,7 +74,7 @@ if (session) {
       renderAnalytics(content)
     }
   }
-           }
+}
 // ================================================================
 // PRICING — needs country autocomplete + service/provider dropdowns
 // ================================================================
@@ -91,7 +91,7 @@ async function renderPricing(content) {
   services = svc || []; providers = prov || []
 
   function startAdd() {
-    form = { number_type: 'disposable', service_id: '', provider_id: '', buy_cost: '', sell_price: '', plan_duration: '', max_quantity_per_purchase: 10, is_active: true }
+    form = { number_type: 'disposable', service_id: '', provider_id: '', provider_country: '', provider_product: '', provider_operator: '', buy_cost: '', sell_price: '', plan_duration: '', max_quantity_per_purchase: 10, is_active: true }
     country = null
     draw()
   }
@@ -106,6 +106,9 @@ async function renderPricing(content) {
     if (!payload.service_id) payload.service_id = null
     if (!payload.provider_id) payload.provider_id = null
     if (!payload.plan_duration) payload.plan_duration = null
+    if (!payload.provider_country) payload.provider_country = null
+    if (!payload.provider_product) payload.provider_product = null
+    if (!payload.provider_operator) payload.provider_operator = null
     const isEdit = !!form.id
     delete payload.id
 
@@ -150,6 +153,15 @@ async function renderPricing(content) {
           <div class="form-row"><label>Provider</label>
             <select id="f-provider_id"><option value="">--</option>${providers.map(p => `<option value="${p.id}" ${form.provider_id === p.id ? 'selected' : ''}>${esc(p.name)}</option>`).join('')}</select>
           </div>
+          <div class="form-row"><label>Provider country code</label>
+            <input id="f-provider_country" placeholder="provider's country ID (e.g. 1)" value="${esc(form.provider_country)}" />
+          </div>
+          <div class="form-row"><label>Provider service code</label>
+            <input id="f-provider_product" placeholder="provider's service ID (e.g. wa)" value="${esc(form.provider_product)}" />
+          </div>
+          <div class="form-row"><label>Provider pool/operator (optional)</label>
+            <input id="f-provider_operator" placeholder="leave empty unless needed" value="${esc(form.provider_operator)}" />
+          </div>
           <div class="form-row"><label>Buy Cost (your cost)</label>
             <input id="f-buy_cost" type="number" value="${esc(form.buy_cost)}" />
           </div>
@@ -190,7 +202,7 @@ async function renderPricing(content) {
         content.querySelector('#service-row').style.display = e.target.value === 'real' ? 'none' : ''
         content.querySelector('#plan-row').style.display = e.target.value === 'disposable' ? 'none' : ''
       })
-      ;['service_id', 'plan_duration', 'provider_id', 'buy_cost', 'sell_price', 'max_quantity_per_purchase'].forEach(k => {
+      ;['service_id', 'plan_duration', 'provider_id', 'provider_country', 'provider_product', 'provider_operator', 'buy_cost', 'sell_price', 'max_quantity_per_purchase'].forEach(k => {
         const el = content.querySelector(`#f-${k}`)
         if (el) el.addEventListener('input', () => form[k] = el.value)
       })
@@ -207,7 +219,7 @@ async function renderPricing(content) {
   }
 
   load()
-                                                   }
+          }
 // ================================================================
 // USERS — role promotion is the fix for the single-hardcoded-admin-email problem
 // ================================================================
