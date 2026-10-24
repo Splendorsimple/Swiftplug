@@ -75,6 +75,7 @@ if (session) {
     }
   }
 }
+
 // ================================================================
 // PRICING — needs country autocomplete + service/provider dropdowns
 // ================================================================
@@ -91,7 +92,7 @@ async function renderPricing(content) {
   services = svc || []; providers = prov || []
 
   function startAdd() {
-    form = { number_type: 'disposable', service_id: '', provider_id: '', provider_country: '', provider_product: '', provider_operator: '', buy_cost: '', sell_price: '', plan_duration: '', max_quantity_per_purchase: 10, is_active: true }
+    form = { number_type: 'disposable', service_id: '', provider_id: '', provider_country: '', provider_product: '', provider_operator: '', tier: 1, buy_cost: '', sell_price: '', plan_duration: '', max_quantity_per_purchase: 10, is_active: true }
     country = null
     draw()
   }
@@ -109,6 +110,7 @@ async function renderPricing(content) {
     if (!payload.provider_country) payload.provider_country = null
     if (!payload.provider_product) payload.provider_product = null
     if (!payload.provider_operator) payload.provider_operator = null
+    payload.tier = Math.min(3, Math.max(1, parseInt(payload.tier, 10) || 1))
     const isEdit = !!form.id
     delete payload.id
 
@@ -124,8 +126,7 @@ async function renderPricing(content) {
     if (!confirm('Delete this pricing row?')) return
     await supabase.from('pricing').delete().eq('id', id)
     load()
-  }
-
+      }
   function draw() {
     content.innerHTML = `
       <div class="admin-head">
@@ -162,6 +163,9 @@ async function renderPricing(content) {
           <div class="form-row"><label>Provider pool/operator (optional)</label>
             <input id="f-provider_operator" placeholder="leave empty unless needed" value="${esc(form.provider_operator)}" />
           </div>
+          <div class="form-row" id="tier-row" style="${form.number_type === 'real' ? 'display:none' : ''}"><label>Server option (1, 2 or 3)</label>
+            <select id="f-tier">${[1, 2, 3].map(t => `<option value="${t}" ${Number(form.tier || 1) === t ? 'selected' : ''}>Server ${t}</option>`).join('')}</select>
+          </div>
           <div class="form-row"><label>Buy Cost (your cost)</label>
             <input id="f-buy_cost" type="number" value="${esc(form.buy_cost)}" />
           </div>
@@ -180,13 +184,14 @@ async function renderPricing(content) {
       ` : ''}
       ${rows.length ? `
       <table>
-        <thead><tr><th>Country</th><th>Type</th><th>Service/Plan</th><th>Sell Price</th><th></th></tr></thead>
+        <thead><tr><th>Country</th><th>Type</th><th>Service/Plan</th><th>Server</th><th>Sell Price</th><th></th></tr></thead>
         <tbody>
           ${rows.map(r => `
             <tr>
               <td data-label="Country">${esc(r.countries?.flag_emoji)} ${esc(r.countries?.name)}</td>
               <td data-label="Type">${esc(r.number_type)}</td>
               <td data-label="Service / Plan">${esc(r.services?.name || r.plan_duration)}</td>
+              <td data-label="Server">${r.number_type === 'disposable' ? 'Server ' + (r.tier || 1) : '-'}</td>
               <td data-label="Sell price">${fmt(r.sell_price)}</td>
               <td class="row-actions"><button class="edit" data-edit="${r.id}">Edit</button><button class="delete" data-del="${r.id}">Delete</button></td>
             </tr>
@@ -201,8 +206,9 @@ async function renderPricing(content) {
         form.number_type = e.target.value
         content.querySelector('#service-row').style.display = e.target.value === 'real' ? 'none' : ''
         content.querySelector('#plan-row').style.display = e.target.value === 'disposable' ? 'none' : ''
+        content.querySelector('#tier-row').style.display = e.target.value === 'real' ? 'none' : ''
       })
-      ;['service_id', 'plan_duration', 'provider_id', 'provider_country', 'provider_product', 'provider_operator', 'buy_cost', 'sell_price', 'max_quantity_per_purchase'].forEach(k => {
+      ;['service_id', 'plan_duration', 'provider_id', 'provider_country', 'provider_product', 'provider_operator', 'tier', 'buy_cost', 'sell_price', 'max_quantity_per_purchase'].forEach(k => {
         const el = content.querySelector(`#f-${k}`)
         if (el) el.addEventListener('input', () => form[k] = el.value)
       })
@@ -219,7 +225,7 @@ async function renderPricing(content) {
   }
 
   load()
-          }
+              }
 // ================================================================
 // USERS — role promotion is the fix for the single-hardcoded-admin-email problem
 // ================================================================
@@ -320,4 +326,4 @@ async function renderAnalytics(content) {
       ${cards.map(c => `<div class="card stat-card"><div class="value">${c.value}</div><div class="label">${c.label}</div></div>`).join('')}
     </div>
   `
-}
+    }
