@@ -129,17 +129,35 @@ function resetDisposableForm() {
 }
 
 async function loadDisposablePricing() {
+  let dOptions = []
+async function loadDisposablePricing() {
   const { data } = await supabase.from('catalog').select('*')
-    .eq('service_id', selectedService.id).eq('country_id', dCountry.id).eq('number_type', 'disposable').single()
-  dPricing = data || null
-  if (dPricing) {
-    document.getElementById('dqty-wrap').classList.remove('hidden')
-    document.getElementById('dmax-note').textContent = `max ${dPricing.max_quantity_per_purchase || 10} per purchase`
-    dQty = 1; document.getElementById('dqty-value').textContent = '1'
-    await updateDisposableTotals()
-  } else {
+    .eq('service_id', selectedService.id).eq('country_id', dCountry.id).eq('number_type', 'disposable').order('tier')
+  dOptions = data || []
+  const box = document.getElementById('dtiers')
+  if (!dOptions.length) {
+    dPricing = null
+    box.classList.add('hidden')
     document.getElementById('dqty-wrap').classList.add('hidden')
+    return
   }
+  dPricing = dOptions[0]
+  box.innerHTML = dOptions.map(o => `
+    <button type="button" class="tier-chip${o.id === dPricing.id ? ' active' : ''}" data-id="${o.id}">
+      <span>Server ${o.tier || 1}</span><b class="mono">${fmt(o.sell_price)}</b>
+    </button>`).join('')
+  box.classList.toggle('hidden', dOptions.length < 2)
+  box.querySelectorAll('.tier-chip').forEach(btn => btn.addEventListener('click', () => {
+    dPricing = dOptions.find(o => o.id === btn.dataset.id)
+    box.querySelectorAll('.tier-chip').forEach(b => b.classList.toggle('active', b === btn))
+    setDQty(dQty)
+    document.getElementById('dmax-note').textContent = `max ${dPricing.max_quantity_per_purchase || 10} per purchase`
+  }))
+  document.getElementById('dqty-wrap').classList.remove('hidden')
+  document.getElementById('dmax-note').textContent = `max ${dPricing.max_quantity_per_purchase || 10} per purchase`
+  dQty = 1; document.getElementById('dqty-value').textContent = '1'
+  await updateDisposableTotals()
+}
 }
 
 function setDQty(v) {
