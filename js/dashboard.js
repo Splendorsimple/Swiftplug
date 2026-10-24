@@ -6,6 +6,7 @@ import { attachCountryAutocomplete } from './countryAutocomplete.js'
 import { getApplicableDiscount, applyDiscount } from './discounts.js'
 import { createNumberCard } from './numberCard.js'
 import { SUPABASE_URL, PAYSTACK_PUBLIC_KEY } from './config.js'
+import { sortServices, fillIcon } from './serviceMeta.js'
 
 const session = await requireAuth()
 if (session) {
@@ -102,24 +103,32 @@ async function initDisposableFlow() {
 }
 
 function renderServiceGrid(list) {
+  function renderServiceGrid(list) {
   const grid = document.getElementById('service-grid')
-  grid.innerHTML = list.map(s => `
-    <button class="service-card" data-id="${s.id}" data-name="${s.name}">
-      <span class="service-icon">${s.name[0]}</span>
-      <span style="font-weight:700;font-size:.9rem">${s.name}</span>
-      <span class="muted" style="font-size:.8rem">${s.minPrice != null ? 'from ' + fmt(s.minPrice) : 'Unavailable'}</span>
-      <span style="font-size:.75rem;color:rgb(var(--highlight))">Available in ${s.countryCount} countries</span>
-    </button>
-  `).join('')
-  grid.querySelectorAll('.service-card').forEach(btn => {
+  grid.innerHTML = ''
+  sortServices(list, s => (s.minPrice != null ? 1 : 0)).forEach(s => {
+    const btn = document.createElement('button')
+    btn.className = 'service-card'
+    btn.dataset.id = s.id
+    btn.dataset.name = s.name
+    const ic = document.createElement('span')
+    ic.className = 'service-icon'
+    fillIcon(ic, s)
+    const name = document.createElement('span'); name.style.cssText = 'font-weight:700;font-size:.9rem'; name.textContent = s.name
+    const price = document.createElement('span'); price.className = 'muted'; price.style.fontSize = '.8rem'
+    price.textContent = s.minPrice != null ? 'from ' + fmt(s.minPrice) : 'Unavailable'
+    const c = document.createElement('span'); c.style.cssText = 'font-size:.75rem;color:rgb(var(--highlight))'
+    c.textContent = `Available in ${s.countryCount} countries`
+    btn.append(ic, name, price, c)
     btn.addEventListener('click', () => {
-      selectedService = { id: btn.dataset.id, name: btn.dataset.name }
-      document.getElementById('chosen-service-name').textContent = selectedService.name
+      selectedService = { id: s.id, name: s.name }
+      document.getElementById('chosen-service-name').textContent = s.name
       document.getElementById('service-catalog').classList.add('hidden')
       document.getElementById('disposable-purchase-form').classList.remove('hidden')
     })
+    grid.appendChild(btn)
   })
-}
+  }
 
 function resetDisposableForm() {
   dCountry = null; dPricing = null; dQty = 1
