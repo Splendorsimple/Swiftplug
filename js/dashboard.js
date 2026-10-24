@@ -71,6 +71,12 @@ async function initDisposableFlow() {
     return { ...s, minPrice, countryCount }
   })
   renderServiceGrid(allServices)
+    const qp = new URLSearchParams(location.search)
+  if (qp.get('kind') === 'real') document.querySelector('#kind-toggle button[data-kind="real"]')?.click()
+  const sec = qp.get('section')
+  if (sec) document.querySelector(`#dash-nav button[data-section="${CSS.escape(sec)}"]`)?.click()
+  const want = qp.get('service')
+  if (want) document.querySelector(`#service-grid .service-card[data-id="${CSS.escape(want)}"]`)?.click()
 
   document.getElementById('service-search').addEventListener('input', (e) => {
     const q = e.target.value.toLowerCase()
