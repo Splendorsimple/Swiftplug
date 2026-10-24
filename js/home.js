@@ -1,6 +1,7 @@
 import { supabase } from './supabaseClient.js'
 import { renderNavbar } from './nav.js'
 import { fmt } from './currency.js'
+import { sortServices, fillIcon } from './serviceMeta.js'
 
 renderNavbar()
 
@@ -27,14 +28,7 @@ function draw(items) {
     a.href = 'dashboard.html?service=' + encodeURIComponent(s.id)
     const ic = document.createElement('span')
     ic.className = 'service-icon'
-    const letter = (s.name || '?')[0]
-    if (s.icon_url) {
-      ic.classList.add('has-img')
-      const img = document.createElement('img')
-      img.alt = ''; img.src = s.icon_url
-      img.onerror = () => { ic.classList.remove('has-img'); ic.textContent = letter }
-      ic.appendChild(img)
-    } else ic.textContent = letter
+    fillIcon(ic, s)
     const name = document.createElement('span'); name.style.cssText = 'font-weight:700;font-size:.9rem'; name.textContent = s.name
     const price = document.createElement('span'); price.className = 'muted'; price.style.fontSize = '.8rem'; price.textContent = `from ${fmt(s.min)}`
     const c = document.createElement('span'); c.style.cssText = 'font-size:.75rem;color:rgb(var(--highlight))'; c.textContent = `${s.countries} ${s.countries === 1 ? 'country' : 'countries'}`
@@ -53,7 +47,8 @@ async function loadServices() {
     list = (services || []).map(s => {
       const r = (rows || []).filter(x => x.service_id === s.id)
       return { ...s, min: r.length ? Math.min(...r.map(x => Number(x.sell_price))) : null, countries: new Set(r.map(x => x.country_id)).size }
-    }).filter(s => s.min != null).sort((a, b) => b.countries - a.countries || a.name.localeCompare(b.name))
+    }).filter(s => s.min != null)
+    list = sortServices(list, () => 1)
     draw(list)
   } catch (e) {
     grid.innerHTML = ''
