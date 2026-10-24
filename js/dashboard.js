@@ -72,7 +72,7 @@ async function initDisposableFlow() {
     return { ...s, minPrice, countryCount }
   })
   renderServiceGrid(allServices)
-    const qp = new URLSearchParams(location.search)
+  const qp = new URLSearchParams(location.search)
   if (qp.get('kind') === 'real') document.querySelector('#kind-toggle button[data-kind="real"]')?.click()
   const sec = qp.get('section')
   if (sec) document.querySelector(`#dash-nav button[data-section="${CSS.escape(sec)}"]`)?.click()
@@ -103,7 +103,6 @@ async function initDisposableFlow() {
 }
 
 function renderServiceGrid(list) {
-  function renderServiceGrid(list) {
   const grid = document.getElementById('service-grid')
   grid.innerHTML = ''
   sortServices(list, s => (s.minPrice != null ? 1 : 0)).forEach(s => {
@@ -128,8 +127,7 @@ function renderServiceGrid(list) {
     })
     grid.appendChild(btn)
   })
-  }
-
+}
 function resetDisposableForm() {
   dCountry = null; dPricing = null; dQty = 1
   document.getElementById('dqty-value').textContent = '1'
@@ -137,8 +135,7 @@ function resetDisposableForm() {
   window.__resetDCountry && window.__resetDCountry()
 }
 
-async function loadDisposablePricing() {
-  let dOptions = []
+let dOptions = []
 async function loadDisposablePricing() {
   const { data } = await supabase.from('catalog').select('*')
     .eq('service_id', selectedService.id).eq('country_id', dCountry.id).eq('number_type', 'disposable').order('tier')
@@ -166,7 +163,6 @@ async function loadDisposablePricing() {
   document.getElementById('dmax-note').textContent = `max ${dPricing.max_quantity_per_purchase || 10} per purchase`
   dQty = 1; document.getElementById('dqty-value').textContent = '1'
   await updateDisposableTotals()
-}
 }
 
 function setDQty(v) {
@@ -296,8 +292,7 @@ async function buyReal() {
   } finally {
     btn.disabled = false; btn.textContent = 'Buy'
   }
-}
-
+      }
 // ================================================================
 // MY NUMBERS
 // ================================================================
