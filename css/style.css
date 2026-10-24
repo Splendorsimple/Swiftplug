@@ -540,3 +540,15 @@ html:not(.light) #rplans > button.card .mono { color: rgb(var(--accent)); }
 .hero .ico { color: rgb(var(--accent)); }
 
 #wallet-history { border-radius: var(--r-card); overflow: hidden; }
+/* ---- v3b: navbar fix + server tier chips ---- */
+.navbar { -webkit-backdrop-filter: none; backdrop-filter: none; background: rgb(var(--bg)); }
+.tier-row { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 14px; }
+.tier-chip {
+  flex: 1 1 0; min-width: 96px; display: flex; flex-direction: column; align-items: flex-start; gap: 4px;
+  padding: 12px 14px; border-radius: 18px; cursor: pointer; text-align: left;
+  background: rgb(var(--surface)); color: rgb(var(--fg)); border: 1.5px solid rgba(var(--line), .1); box-shadow: var(--shadow);
+}
+.tier-chip span { font-size: .72rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; opacity: .75; }
+.tier-chip b { font-size: 1.05rem; }
+.tier-chip.active { background: rgb(var(--accent)); color: rgb(var(--accentink)); border-color: transparent; }
+.tier-chip.active span { opacity: .8; }
