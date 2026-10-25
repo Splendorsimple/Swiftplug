@@ -552,3 +552,21 @@ html:not(.light) #rplans > button.card .mono { color: rgb(var(--accent)); }
 .tier-chip b { font-size: 1.05rem; }
 .tier-chip.active { background: rgb(var(--accent)); color: rgb(var(--accentink)); border-color: transparent; }
 .tier-chip.active span { opacity: .8; }
+/* ---- v3c: inline number card (copy number, OTP, copy OTP, cancel) ---- */
+.number-card .head { flex-wrap: wrap; }
+.number-card .icon-btn {
+  padding: 6px 12px; border-radius: 999px; font-size: .75rem; font-weight: 700; cursor: pointer;
+  background: rgba(255,255,255,.1); color: rgb(var(--hero-fg)); border: 1px solid rgba(255,255,255,.16);
+}
+.number-card .otp-display {
+  text-align: center; font-size: 2rem; font-weight: 700; letter-spacing: .14em; padding: 16px; border-radius: 18px;
+  background: rgba(255,255,255,.07); color: rgb(var(--accent));
+}
+.number-card .otp-display.waiting { font-size: 1rem; letter-spacing: .02em; font-weight: 500; color: rgba(var(--hero-fg), .7); }
+.number-card .card-actions { display: flex; gap: 10px; }
+.number-card .card-actions button { flex: 1; padding: 13px; border-radius: 14px; font-weight: 700; cursor: pointer; font-size: .95rem; }
+.number-card .btn-copy { background: rgb(var(--accent)); color: rgb(var(--accentink)); border: none; }
+.number-card .btn-copy:disabled { opacity: .45; cursor: default; }
+.number-card .btn-cancel { background: rgba(239,68,68,.16); color: #ff8a8a; border: 1px solid rgba(239,68,68,.35); }
+.number-card .btn-cancel:disabled { opacity: .5; }
+.number-card .error-text { color: #ff8a8a; margin: 0; }
