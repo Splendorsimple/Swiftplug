@@ -61,10 +61,15 @@ let selectedService = null
 let dCountry = null
 let dPricing = null
 let dQty = 1
+let dCatalog = []
+let dCountries = []
 
 async function initDisposableFlow() {
   const { data } = await supabase.from('services').select('*').eq('is_active', true)
   const { data: catalogRows } = await supabase.from('catalog').select('*').eq('number_type', 'disposable')
+  const { data: countryRows } = await supabase.from('countries').select('id,name,flag_emoji')
+  dCatalog = catalogRows || []
+  dCountries = countryRows || []
   allServices = (data || []).map(s => {
     const rows = (catalogRows || []).filter(r => r.service_id === s.id)
     const minPrice = rows.length ? Math.min(...rows.map(r => r.sell_price)) : null
@@ -90,12 +95,11 @@ async function initDisposableFlow() {
     resetDisposableForm()
   })
 
-  const { reset: resetCountry, getSelected } = attachCountryAutocomplete(
-    document.getElementById('dcountry-input'),
-    document.getElementById('dcountry-results'),
-    async (country) => { dCountry = country; await loadDisposablePricing() }
-  )
-  window.__resetDCountry = resetCountry
+  document.getElementById('dcountry-select').addEventListener('change', async (e) => {
+    if (!e.target.value) { dCountry = null; dPricing = null; document.getElementById('dqty-wrap').classList.add('hidden'); return }
+    dCountry = { id: e.target.value }
+    await loadDisposablePricing()
+  })
 
   document.getElementById('dqty-minus').addEventListener('click', () => setDQty(dQty - 1))
   document.getElementById('dqty-plus').addEventListener('click', () => setDQty(dQty + 1))
@@ -124,15 +128,30 @@ function renderServiceGrid(list) {
       document.getElementById('chosen-service-name').textContent = s.name
       document.getElementById('service-catalog').classList.add('hidden')
       document.getElementById('disposable-purchase-form').classList.remove('hidden')
+      fillCountrySelect()
     })
     grid.appendChild(btn)
   })
 }
+
+function fillCountrySelect() {
+  const sel = document.getElementById('dcountry-select')
+  const best = {}
+  dCatalog.filter(r => r.service_id === selectedService.id).forEach(r => {
+    best[r.country_id] = Math.min(best[r.country_id] ?? Infinity, Number(r.sell_price))
+  })
+  const opts = dCountries.filter(c => best[c.id] != null).sort((a, b) => a.name.localeCompare(b.name))
+  sel.innerHTML = opts.length
+    ? '<option value="">Select a country</option>' + opts.map(c => `<option value="${c.id}">${c.flag_emoji || ''} ${c.name} - from ${fmt(best[c.id])}</option>`).join('')
+    : '<option value="">No countries available yet</option>'
+  dCountry = null; dPricing = null
+  document.getElementById('dqty-wrap').classList.add('hidden')
+    }
 function resetDisposableForm() {
   dCountry = null; dPricing = null; dQty = 1
   document.getElementById('dqty-value').textContent = '1'
   document.getElementById('dqty-wrap').classList.add('hidden')
-  window.__resetDCountry && window.__resetDCountry()
+  const cs = document.getElementById('dcountry-select'); if (cs) cs.value = ''
 }
 
 let dOptions = []
@@ -188,7 +207,7 @@ async function buyDisposable() {
   const errorEl = document.getElementById('derror')
   const btn = document.getElementById('dbuy-btn')
   errorEl.classList.add('hidden')
-  btn.disabled = true; btn.textContent = 'Provisioning...'
+  btn.disabled = true; btn.textContent = 'Finding number...'
   try {
     const { data: { session } } = await supabase.auth.getSession()
     const res = await fetch(`${SUPABASE_URL}/functions/v1/purchase-disposable`, {
@@ -200,10 +219,15 @@ async function buyDisposable() {
     if (!res.ok) throw new Error(result.error || 'Purchase failed')
 
     await loadSidebarBalance()
-    document.getElementById('service-catalog').classList.remove('hidden')
-    document.getElementById('disposable-purchase-form').classList.add('hidden')
-    resetDisposableForm()
-    document.querySelector('[data-section="mine"]').click()
+    // Show the new number(s) right here, under the Buy button, with timer, OTP, copy and cancel.
+    const box = document.getElementById('dresult')
+    const label = `${selectedService.name} - ${fmt(dPricing.sell_price)}`
+    ;(result.numbers || []).forEach(n => {
+      const card = createNumberCard(n, () => setTimeout(() => { card.remove(); loadSidebarBalance() }, 0), { label })
+      activeCards.push(card)
+      box.prepend(card)
+    })
+    box.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
   } catch (err) {
     errorEl.textContent = err.message
     errorEl.classList.remove('hidden')
