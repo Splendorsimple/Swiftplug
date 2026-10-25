@@ -43,8 +43,7 @@
           <button class="link" id="back-to-services" style="background:none;border:none;padding:0;margin-bottom:12px">← Back to services</button>
           <h3 id="chosen-service-name"></h3>
           <div class="field">
-            <input id="dcountry-input" placeholder="Search country or phone code (e.g. Nigeria or +234)" autocomplete="off" />
-            <div id="dcountry-results" class="card hidden" style="position:relative;margin-top:4px;padding:4px;max-height:220px;overflow-y:auto"></div>
+                         <select id="dcountry-select"><option value="">Select a country</option></select>
           </div>
           <div id="dqty-wrap" class="hidden">
                         <div id="dtiers" class="tier-row hidden"></div>
@@ -62,6 +61,7 @@
             <button class="btn-primary" id="dbuy-btn">Buy</button>
           </div>
         </div>
+                <div id="dresult" style="margin-top:16px;display:grid;gap:12px"></div>
       </div>
 
       <!-- Real numbers flow -->
