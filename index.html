@@ -12,21 +12,36 @@
 <body>
 <div id="navbar" class="navbar"></div>
 
-<main class="container">
-  <section id="home-balance" class="card wallet-summary hidden">
-    <p class="muted" style="margin:0;font-size:.8rem">Wallet balance</p>
-    <p class="amount" id="home-balance-amt">₦0</p>
-    <a class="link" href="dashboard.html?section=wallet">Add funds →</a>
+<main class="container hm">
+  <div id="home-hi" class="hm-hi hidden"><span id="home-greet">Hello</span><h1 id="home-name">Hi</h1></div>
+
+  <section id="home-balance" class="hm-bal hidden">
+    <div class="hm-bal-top"><span>Available balance</span><button type="button" id="home-eye" class="hm-eye" aria-label="Show or hide balance"></button></div>
+    <div class="hm-amt mono" id="home-balance-amt">₦0</div>
+    <div class="hm-bal-btns">
+      <a class="hm-fund" href="dashboard.html?section=wallet"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg> Fund wallet</a>
+      <a class="hm-hist" href="dashboard.html?section=wallet" aria-label="History"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></a>
+    </div>
   </section>
 
-  <div class="segmented" id="home-kind" style="margin:20px 0">
-    <button class="active" type="button">One-time</button>
-    <button type="button" data-go="dashboard.html?kind=real">Longer-term</button>
-  </div>
+  <div id="home-promos" class="hm-promos"></div>
 
-  <input id="home-search" placeholder="Find a service..." autocomplete="off" />
-  <div class="service-grid" id="home-service-grid" style="margin-top:16px"></div>
-  <p id="home-empty" class="muted hidden" style="margin-top:20px">No services yet. Check back soon.</p>
+  <section class="hm-card">
+    <div class="hm-head"><h2>Quick services</h2></div>
+    <div id="home-tiles" class="hm-tiles"></div>
+  </section>
+
+  <section class="hm-card">
+    <div class="hm-head"><h2>Popular services</h2></div>
+    <input id="home-search" placeholder="Find a service..." autocomplete="off" />
+    <div class="service-grid" id="home-service-grid" style="margin-top:14px"></div>
+    <p id="home-empty" class="muted hidden" style="margin-top:20px">No services yet. Check back soon.</p>
+  </section>
+
+  <section id="home-history" class="hm-card hidden">
+    <div class="hm-head"><h2>History</h2></div>
+    <div id="home-rows"></div>
+  </section>
 </main>
 
 <footer>
