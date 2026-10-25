@@ -654,3 +654,56 @@ html:not(.light) .nb-ic { color: rgb(var(--accent)); }
 .nb-scroll { grid-auto-rows: max-content; }
 .nb-scroll > * { flex-shrink: 0; min-height: min-content; }
    
+/* ======================================================================
+   v5: launcher home (balance card, promo strip, quick tiles, history rows).
+   To go back: delete from this line to the end, restore old index.html + js/home.js.
+   ====================================================================== */
+.hm { display: grid; gap: 16px; padding-top: 16px; padding-bottom: 40px; }
+.hm svg { width: 1.2em; height: 1.2em; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
+.hm-hi span { color: rgb(var(--muted)); font-size: .95rem; }
+.hm-hi h1 { margin: 2px 0 0; font-size: 1.9rem; letter-spacing: -.02em; }
+
+.hm-bal { border-radius: 30px; padding: 22px; color: rgb(var(--hero-fg)); position: relative; overflow: hidden;
+  background: linear-gradient(145deg, rgb(var(--hero-a)), rgb(var(--hero-b))); border: 1px solid rgba(var(--accent), .18); }
+.hm-bal::after { content: ""; position: absolute; width: 220px; height: 220px; right: -70px; top: -90px; border-radius: 50%; background: radial-gradient(circle, rgba(var(--accent), .28), transparent 70%); pointer-events: none; }
+.hm-bal > * { position: relative; z-index: 1; }
+.hm-bal-top { display: flex; align-items: center; gap: 10px; font-weight: 600; opacity: .9; }
+.hm-eye { width: 38px; height: 38px; border-radius: 50%; border: none; cursor: pointer; display: grid; place-items: center; background: rgba(255,255,255,.12); color: inherit; }
+.hm-amt { font-size: 2.4rem; font-weight: 700; letter-spacing: -.02em; margin: 14px 0 20px; }
+.hm-bal-btns { display: flex; gap: 10px; }
+.hm-fund { flex: 1; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 16px; border-radius: 20px; font-weight: 700; background: rgb(var(--accent)); color: rgb(var(--accentink)); box-shadow: 0 10px 24px rgba(0,0,0,.25); }
+.hm-hist { width: 60px; display: grid; place-items: center; border-radius: 20px; background: rgba(255,255,255,.12); color: rgb(var(--hero-fg)); }
+
+.hm-promos { display: flex; gap: 12px; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; margin: 0 -16px; padding: 0 16px; scroll-padding: 0 16px; }
+.hm-promos::-webkit-scrollbar { display: none; }
+.hm-promo { flex: 0 0 82%; max-width: 380px; scroll-snap-align: start; border-radius: 26px; padding: 18px; display: grid; gap: 6px; align-content: start; min-height: 150px;
+  color: rgb(var(--hero-fg)); border: 1px solid rgba(var(--accent), .14); }
+.hm-promo.c1 { background: linear-gradient(145deg, rgb(var(--hero-a)), rgb(var(--hero-b))); }
+.hm-promo.c2 { background: linear-gradient(145deg, #1d5a3d, #0e3524); }
+.hm-promo.c3 { background: linear-gradient(145deg, #2a4a2a, #12261a); }
+.hm-promo.c4 { background: linear-gradient(145deg, #123f46, #0a2229); }
+.hm-pi { width: 44px; height: 44px; border-radius: 14px; display: grid; place-items: center; background: rgba(255,255,255,.12); color: rgb(var(--accent)); margin-bottom: 4px; }
+.hm-promo b { font-size: 1.2rem; }
+.hm-pd { font-size: .92rem; opacity: .8; }
+.hm-pa { margin-top: 6px; font-weight: 700; color: rgb(var(--accent)); }
+
+.hm-card { border-radius: 30px; padding: 20px; background: rgb(var(--surface)); border: 1px solid rgba(var(--line), .1); }
+.hm-head h2 { margin: 0 0 16px; font-size: 1.35rem; }
+.hm-tiles { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px 8px; }
+.hm-tile { display: grid; justify-items: center; gap: 8px; text-align: center; background: none; border: none; cursor: pointer; color: rgb(var(--fg)); position: relative; padding: 0; font: inherit; }
+.hm-ti { width: 58px; height: 58px; border-radius: 20px; display: grid; place-items: center; background: linear-gradient(145deg, rgb(var(--hero-a)), rgb(var(--hero-b))); color: rgb(var(--accent)); }
+.hm-ti svg { width: 26px; height: 26px; }
+.hm-tt { font-size: .82rem; font-weight: 600; line-height: 1.2; }
+.hm-tile.soon { opacity: .6; }
+.hm-tile em { position: absolute; top: -6px; right: 2px; font-style: normal; font-size: .55rem; font-weight: 800; letter-spacing: .06em; padding: 3px 6px; border-radius: 999px; background: #f5b800; color: #3a2a00; }
+
+.hm-row { display: flex; align-items: center; gap: 14px; padding: 12px 0; color: rgb(var(--fg)); }
+.hm-row + .hm-row { border-top: 1px solid rgba(var(--line), .08); }
+.hm-ri { width: 48px; height: 48px; border-radius: 16px; display: grid; place-items: center; background: rgb(var(--surface2)); color: rgb(var(--highlight)); }
+html:not(.light) .hm-ri { color: rgb(var(--accent)); }
+.hm-rt { flex: 1; display: grid; gap: 2px; }
+.hm-rt b { font-size: 1.05rem; }
+.hm-rt span { font-size: .85rem; color: rgb(var(--muted)); }
+.hm-row > svg:last-child { color: rgb(var(--muted)); }
+@media (min-width: 700px) { .hm-promo { flex-basis: 340px; } }
+                                                                                                                                           
