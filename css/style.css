@@ -706,4 +706,37 @@ html:not(.light) .hm-ri { color: rgb(var(--accent)); }
 .hm-rt span { font-size: .85rem; color: rgb(var(--muted)); }
 .hm-row > svg:last-child { color: rgb(var(--muted)); }
 @media (min-width: 700px) { .hm-promo { flex-basis: 340px; } }
-                                                                                                                                           
+/* ======================================================================
+   v6: bottom tab bar + sharper home tiles. Promo strip removed.
+   To go back: delete from this line to the end, restore old nav.js, home.js, index.html.
+   ====================================================================== */
+.tb-bar {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 50; display: flex; align-items: flex-end; justify-content: space-around;
+  padding: 8px 8px calc(8px + env(safe-area-inset-bottom)); background: rgb(var(--surface));
+  border-top: 1px solid rgba(var(--line), .1); box-shadow: 0 -10px 30px rgba(0,0,0,.18);
+}
+.tb-tab { flex: 1; max-width: 96px; display: grid; justify-items: center; gap: 3px; padding: 6px 0; background: none; border: none; cursor: pointer; font: inherit; color: rgb(var(--muted)); }
+.tb-tab svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.tb-lb { font-size: .72rem; font-weight: 700; }
+.tb-tab.active { color: rgb(var(--highlight)); }
+html:not(.light) .tb-tab.active { color: rgb(var(--accent)); }
+.tb-main .tb-ic { width: 54px; height: 54px; margin-top: -26px; border-radius: 20px; display: grid; place-items: center;
+  background: rgb(var(--accent)); color: rgb(var(--accentink)); box-shadow: 0 8px 20px rgba(var(--accent), .35); border: 4px solid rgb(var(--surface)); box-sizing: content-box; }
+.tb-main .tb-ic svg { width: 28px; height: 28px; }
+.tb-main { color: rgb(var(--fg)); }
+body.tb-on { padding-bottom: calc(86px + env(safe-area-inset-bottom)); }
+body.tb-on .sp-fab { bottom: calc(96px + env(safe-area-inset-bottom)) !important; }
+body.tb-on footer { padding-bottom: 12px; }
+@media (min-width: 700px) { .tb-bar { left: 50%; right: auto; transform: translateX(-50%); width: 520px; border-radius: 24px 24px 0 0; border: 1px solid rgba(var(--line), .1); border-bottom: none; } }
+body.nb-lock .tb-bar { z-index: 40; }
+
+/* home tiles: bigger, clearer, one strong action */
+.hm-tiles { gap: 20px 8px; }
+.hm-ti { width: 62px; height: 62px; }
+.hm-ti svg { width: 28px; height: 28px; }
+.hm-tt { font-size: .88rem; font-weight: 700; }
+.hm-tile.main .hm-ti { background: rgb(var(--accent)); color: rgb(var(--accentink)); box-shadow: 0 8px 20px rgba(var(--accent), .3); }
+.hm-tile.soon { opacity: .55; }
+.hm-row { padding: 16px 0; }
+.hm-ri { width: 52px; height: 52px; }
+
