@@ -15,6 +15,7 @@ const I = {
   mobile: '<rect x="7" y="2" width="10" height="20" rx="3"/><path d="M11 18h2"/>',
   card: '<rect x="2" y="5" width="20" height="14" rx="3"/><path d="M2 10h20M6 15h4"/>',
   clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+  menuic: '<path d="M4 7h16M4 12h10M4 17h16"/>',
   grid: '<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>',
   rocket: '<path d="M12 3c3 2 5 5 5 9l-2 3H9l-2-3c0-4 2-7 5-9z"/><circle cx="12" cy="10" r="1.5"/><path d="M9 15l-2 4 3-1M15 15l2 4-3-1"/>',
   send: '<path d="M22 2L11 13M22 2l-7 20-4-9-9-4z"/>',
@@ -63,7 +64,7 @@ export async function renderNavbar() {
     <div class="nb-hero">
       <div class="nb-who"><span class="nb-av">${esc(initial)}</span><span class="nb-mail">${esc(email)}</span></div>
       <div class="nb-bal-l">Balance</div>
-      <div class="nb-bal mono">${esc(fmt(profile?.wallet_balance))}</div>
+      <div class="nb-bal mono js-bal" data-v="${esc(fmt(profile?.wallet_balance))}">${esc(fmt(profile?.wallet_balance))}</div>
       <div class="nb-hero-btns">
         <a class="nb-b1" href="dashboard.html?section=wallet">${svg('plus')} Fund</a>
         <a class="nb-b2" href="dashboard.html?section=wallet">${svg('clock')} History</a>
@@ -105,7 +106,7 @@ export async function renderNavbar() {
     </a>
     <div class="nb-right">
       ${session
-        ? `<a class="nb-wallet" href="dashboard.html?section=wallet">${svg('card')}<span class="mono">${esc(fmt(profile?.wallet_balance))}</span></a>
+        ? `<a class="nb-wallet" href="dashboard.html?section=wallet">${svg('card')}<span class="mono js-bal" data-v="${esc(fmt(profile?.wallet_balance))}">${esc(fmt(profile?.wallet_balance))}</span></a>
            <button class="nb-avatar" id="nb-avatar" aria-label="Open menu">${esc(initial)}</button>`
         : `<a class="nb-signin" href="login.html">Sign in</a>`}
     </div>
@@ -147,9 +148,47 @@ export async function renderNavbar() {
     setOpen(false)
     document.querySelector('.sp-fab')?.click()
   })
+  // ---- Hide balance: one setting (localStorage 'sp-hide-bal') shared by the header, menu and home card ----
+  const paintBal = () => {
+    let hide = false
+    try { hide = localStorage.getItem('sp-hide-bal') === '1' } catch (_e) { /* ignore */ }
+    document.querySelectorAll('.js-bal').forEach(n => { n.textContent = hide ? '₦ • • • • •' : n.dataset.v })
+  }
+  paintBal()
+  window.addEventListener('sp-bal-change', paintBal)
+  window.addEventListener('storage', paintBal)
+
+  // ---- Bottom tab bar (signed-in, phones) ----
+  document.getElementById('tb-bar')?.remove()
+  if (session && !document.querySelector('.admin-layout')) {
+    const tabs = [
+      ['index.html', 'home', 'Home'],
+      ['dashboard.html?section=wallet', 'card', 'Wallet'],
+      ['dashboard.html?section=get', 'plus', 'Buy', true],
+      ['dashboard.html?section=mine', 'mobile', 'Numbers'],
+      [null, 'menuic', 'Menu']
+    ]
+    const bar = document.createElement('nav')
+    bar.id = 'tb-bar'; bar.className = 'tb-bar'; bar.setAttribute('aria-label', 'Main')
+    const on = (href) => {
+      const u = new URL(href, location.href), q = new URLSearchParams(location.search)
+      if (u.pathname !== location.pathname) return false
+      const want = u.searchParams.get('section') || ''
+      const have = q.get('section') || (location.pathname.endsWith('dashboard.html') && !q.get('section') ? 'get' : '')
+      return want === have
+    }
+    bar.innerHTML = tabs.map(t => {
+      const cls = 'tb-tab' + (t[3] ? ' tb-main' : '') + (t[0] && on(t[0]) ? ' active' : '')
+      const inner = `<span class="tb-ic">${svg(t[1])}</span><span class="tb-lb">${t[2]}</span>`
+      return t[0] ? `<a class="${cls}" href="${t[0]}">${inner}</a>` : `<button type="button" class="${cls}" id="tb-menu">${inner}</button>`
+    }).join('')
+    document.body.appendChild(bar)
+    document.body.classList.add('tb-on')
+    document.getElementById('tb-menu').addEventListener('click', () => toggleBtn.click())
+  }
   document.getElementById('nb-signout')?.addEventListener('click', async () => {
     await supabase.auth.signOut()
     window.location.href = 'index.html'
   })
-}
-  
+    }
+       
