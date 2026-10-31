@@ -28,7 +28,7 @@ const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': 
 
 // ---- Quick services (edit labels/links here) ----
 const TILES = [
-  { t: 'Buy Number', i: 'plus', href: 'dashboard.html' },
+  { t: 'Buy Number', i: 'plus', href: 'dashboard.html', main: true },
   { t: 'Rent Number', i: 'clock', href: 'dashboard.html?kind=real' },
   { t: 'My numbers', i: 'mobile', href: 'dashboard.html?section=mine' },
   { t: 'Wallet', i: 'card', href: 'dashboard.html?section=wallet' },
@@ -41,30 +41,9 @@ document.getElementById('home-tiles').innerHTML = TILES.map(x => {
   const inner = `<span class="hm-ti">${svg(x.i)}</span><span class="hm-tt">${x.t}</span>${x.soon ? '<em>SOON</em>' : ''}`
   if (x.soon) return `<div class="hm-tile soon">${inner}</div>`
   if (x.support) return `<button type="button" class="hm-tile" data-support>${inner}</button>`
-  return `<a class="hm-tile" href="${x.href}">${inner}</a>`
+  return `<a class="hm-tile${x.main ? ' main' : ''}" href="${x.href}">${inner}</a>`
 }).join('')
 document.querySelector('[data-support]')?.addEventListener('click', () => document.querySelector('.sp-fab')?.click())
-
-// ---- Promo strip (swipe sideways) ----
-const PROMOS = [
-  { t: 'Get a number', d: 'One-time numbers for any app, paid in naira.', a: 'Buy now', href: 'dashboard.html', i: 'phone', c: 1 },
-  { t: 'Longer-term numbers', d: 'Keep a number for stable verification.', a: 'Rent now', href: 'dashboard.html?kind=real', i: 'clock', c: 2 },
-  { t: 'Social Boost', d: 'Followers, likes and views. Coming soon.', a: 'Coming soon', i: 'rocket', c: 3 },
-  { t: 'Telegram Premium', d: 'Premium for any Telegram account. Coming soon.', a: 'Coming soon', i: 'send', c: 4 }
-]
-const promos = document.getElementById('home-promos')
-promos.innerHTML = PROMOS.map(p => {
-  const body = `<span class="hm-pi">${svg(p.i)}</span><b>${p.t}</b><span class="hm-pd">${p.d}</span><span class="hm-pa">${p.a}${p.href ? ' →' : ''}</span>`
-  return p.href ? `<a class="hm-promo c${p.c}" href="${p.href}">${body}</a>` : `<div class="hm-promo c${p.c}">${body}</div>`
-}).join('')
-let touched = false
-promos.addEventListener('touchstart', () => { touched = true }, { passive: true })
-setInterval(() => {
-  if (touched || document.hidden) return
-  const w = promos.firstElementChild.offsetWidth + 12
-  const end = promos.scrollLeft + promos.clientWidth >= promos.scrollWidth - 4
-  promos.scrollTo({ left: end ? 0 : promos.scrollLeft + w, behavior: 'smooth' })
-}, 4500)
 
 // ---- Signed-in blocks ----
 function greeting() {
@@ -87,7 +66,7 @@ async function loadAccount() {
     amt.textContent = hidden ? '₦ • • • • •' : text
     eye.innerHTML = svg(hidden ? 'eyeoff' : 'eye')
   }
-  eye.addEventListener('click', () => { hidden = !hidden; try { localStorage.setItem('sp-hide-bal', hidden ? '1' : '0') } catch {} paint() })
+  eye.addEventListener('click', () => { hidden = !hidden; try { localStorage.setItem('sp-hide-bal', hidden ? '1' : '0') } catch {} paint(); window.dispatchEvent(new Event('sp-bal-change')) })
   paint()
   ;['home-hi', 'home-balance', 'home-history'].forEach(id => document.getElementById(id).classList.remove('hidden'))
   document.getElementById('home-rows').innerHTML = [
@@ -141,4 +120,3 @@ document.getElementById('home-search').addEventListener('input', (e) => {
 
 loadAccount()
 loadServices()
-  
