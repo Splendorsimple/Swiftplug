@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Social Boost — SwiftPlug</title>
+<link rel="icon" href="assets/favicon.png" />
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=JetBrains+Mono:wght@400;600&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+<div id="navbar" class="navbar"></div>
+
+<main class="container sb">
+  <div class="sb-hero">
+    <h1>Social Boost</h1>
+    <p>Pick a platform, paste your link, choose how many. Your wallet pays and the order starts straight away.</p>
+  </div>
+
+  <section class="sb-card" id="sb-form-card">
+    <div id="sb-platforms" class="sb-chips"></div>
+
+    <div class="field"><label for="sb-service">Service</label><select id="sb-service"></select></div>
+    <p class="muted sb-note" id="sb-limits"></p>
+
+    <div class="field"><label for="sb-link">Link or username</label><input id="sb-link" placeholder="Paste the link to your post or profile" autocomplete="off" /></div>
+    <div class="field"><label for="sb-qty">Quantity</label><input id="sb-qty" type="number" inputmode="numeric" min="1" value="100" /></div>
+
+    <div class="sb-total"><span>Total</span><b class="mono" id="sb-total">₦0</b></div>
+    <button class="btn-primary" id="sb-buy" type="button">Place order</button>
+    <p id="sb-msg" class="sb-msg hidden"></p>
+  </section>
+
+  <section class="sb-card hidden" id="sb-empty">
+    <h3 style="margin-top:0">Not available right now</h3>
+    <p class="muted" style="margin-bottom:0">Social Boost isn't open yet. Please check back soon.</p>
+  </section>
+
+  <section class="sb-card" id="sb-orders-card">
+    <div class="sb-head"><h2>My orders</h2><button type="button" class="pill-btn" id="sb-refresh">Refresh</button></div>
+    <div id="sb-orders"></div>
+  </section>
+</main>
+
+<footer>
+  <a href="terms.html">Terms</a>
+  <a href="privacy.html">Privacy</a>
+  <a href="refunds.html">Refunds</a>
+</footer>
+
+<script type="module" src="js/social.js"></script>
+</body>
+</html>
+
