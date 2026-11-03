@@ -32,7 +32,7 @@ const TILES = [
   { t: 'Rent Number', i: 'clock', href: 'dashboard.html?kind=real' },
   { t: 'My numbers', i: 'mobile', href: 'dashboard.html?section=mine' },
   { t: 'Wallet', i: 'card', href: 'dashboard.html?section=wallet' },
-  { t: 'Social Boost', i: 'rocket', soon: true },
+  { t: 'Social Boost', i: 'rocket', href: 'social.html' },
   { t: 'Telegram Premium', i: 'send', soon: true },
   { t: 'Buy Logs', i: 'bag', soon: true },
   { t: 'Support', i: 'chat', support: true }
