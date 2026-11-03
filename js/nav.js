@@ -78,7 +78,7 @@ export async function renderNavbar() {
     ${section('shield', 'VERIFICATIONS',
       item('dashboard.html', 'phone', 'One-time numbers') +
       item('dashboard.html?kind=real', 'clock', 'Longer-term numbers'))}
-    ${section('rocket', 'COMING SOON', soon('rocket', 'Social Boost') + soon('send', 'Telegram Premium'))}
+    ${section('rocket', 'MORE', item('social.html', 'rocket', 'Social Boost') + soon('send', 'Telegram Premium'))}
     ${isAdmin ? section('shield', 'ADMIN', item('admin.html', 'shield', 'Admin dashboard')) : ''}
     <div class="nb-help"><b>Need help?</b><span>Tap below and pick how you want to reach us.</span>
       <button type="button" id="nb-support">${svg('chat')} Contact support</button></div>
@@ -190,5 +190,4 @@ export async function renderNavbar() {
     await supabase.auth.signOut()
     window.location.href = 'index.html'
   })
-    }
-       
+}
