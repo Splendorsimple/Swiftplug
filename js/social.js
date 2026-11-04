@@ -122,4 +122,3 @@ $('sb-buy').addEventListener('click', async (e) => {
 await loadCatalog()
 await loadOrders()
 refreshOrders()
-  
