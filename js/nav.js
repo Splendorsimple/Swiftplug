@@ -1,122 +1,193 @@
+import './support.js'
+// Fills in the <div id="navbar"></div> placeholder that every page includes.
+// Header: menu button, logo, wallet pill, avatar. The menu is a full-height slide-in panel
+// with a balance card, grouped links, a support card and a pinned footer.
 import { supabase } from './supabaseClient.js'
-import { renderNavbar } from './nav.js'
+import { initTheme, toggleTheme } from './theme.js'
 import { fmt } from './currency.js'
-import { sortServices, fillIcon } from './serviceMeta.js'
 
-renderNavbar()
-
-const grid = document.getElementById('home-service-grid')
-const emptyMsg = document.getElementById('home-empty')
-let list = []
-
-const P = {
+const I = {
+  burger: '<path d="M4 7h16M4 12h16M4 17h16"/>',
+  x: '<path d="M6 6l12 12M18 6L6 18"/>',
+  home: '<path d="M3 11l9-8 9 8v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>',
   plus: '<path d="M12 5v14M5 12h14"/>',
   phone: '<path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z"/>',
-  clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
   mobile: '<rect x="7" y="2" width="10" height="20" rx="3"/><path d="M11 18h2"/>',
   card: '<rect x="2" y="5" width="20" height="14" rx="3"/><path d="M2 10h20M6 15h4"/>',
+  clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+  menuic: '<path d="M4 7h16M4 12h10M4 17h16"/>',
+  grid: '<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>',
   rocket: '<path d="M12 3c3 2 5 5 5 9l-2 3H9l-2-3c0-4 2-7 5-9z"/><circle cx="12" cy="10" r="1.5"/><path d="M9 15l-2 4 3-1M15 15l2 4-3-1"/>',
   send: '<path d="M22 2L11 13M22 2l-7 20-4-9-9-4z"/>',
-  bag: '<path d="M6 7h12l1 14H5z"/><path d="M9 7a3 3 0 0 1 6 0"/>',
+  shield: '<path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/>',
+  sun: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',
+  moon: '<path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/>',
+  out: '<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/>',
+  back: '<path d="M19 12H5M12 19l-7-7 7-7"/>',
   chat: '<path d="M21 12a8 8 0 0 1-11.6 7.1L3 21l1.9-5.4A8 8 0 1 1 21 12z"/>',
-  chev: '<path d="M9 6l6 6-6 6"/>',
-  eye: '<path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',
-  eyeoff: '<path d="M3 3l18 18M10.6 5.1A9.5 9.5 0 0 1 12 5c6 0 10 7 10 7a17 17 0 0 1-3.2 4M6.5 6.6C3.6 8.5 2 12 2 12s4 7 10 7a9.6 9.6 0 0 0 4-.9"/>'
+  list: '<path d="M8 6h12M8 12h12M8 18h12M3 6h.01M3 12h.01M3 18h.01"/>'
 }
-const svg = k => `<svg viewBox="0 0 24 24" aria-hidden="true">${P[k]}</svg>`
-const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]))
+const svg = (k) => `<svg viewBox="0 0 24 24" aria-hidden="true">${I[k]}</svg>`
+const esc = (v) => String(v ?? '').replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]))
 
-// ---- Quick services (edit labels/links here) ----
-const TILES = [
-  { t: 'Buy Number', i: 'plus', href: 'dashboard.html', main: true },
-  { t: 'Rent Number', i: 'clock', href: 'dashboard.html?kind=real' },
-  { t: 'My numbers', i: 'mobile', href: 'dashboard.html?section=mine' },
-  { t: 'Wallet', i: 'card', href: 'dashboard.html?section=wallet' },
-  { t: 'Social Boost', i: 'rocket', href: 'social.html' },
-  { t: 'Telegram Premium', i: 'send', soon: true },
-  { t: 'Buy Logs', i: 'bag', soon: true },
-  { t: 'Support', i: 'chat', support: true }
-]
-document.getElementById('home-tiles').innerHTML = TILES.map(x => {
-  const inner = `<span class="hm-ti">${svg(x.i)}</span><span class="hm-tt">${x.t}</span>${x.soon ? '<em>SOON</em>' : ''}`
-  if (x.soon) return `<div class="hm-tile soon">${inner}</div>`
-  if (x.support) return `<button type="button" class="hm-tile" data-support>${inner}</button>`
-  return `<a class="hm-tile${x.main ? ' main' : ''}" href="${x.href}">${inner}</a>`
-}).join('')
-document.querySelector('[data-support]')?.addEventListener('click', () => document.querySelector('.sp-fab')?.click())
-
-// ---- Signed-in blocks ----
-function greeting() {
-  const h = new Date().getHours()
-  return h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening'
+function isActive(href) {
+  const u = new URL(href, location.href)
+  if (u.pathname !== location.pathname) return false
+  const a = u.searchParams, b = new URLSearchParams(location.search)
+  return ['section', 'kind'].every(k => (a.get(k) || '') === (b.get(k) || ''))
 }
-async function loadAccount() {
+const item = (href, icon, label) =>
+  `<a class="nb-item${isActive(href) ? ' active' : ''}" href="${href}"><span class="nb-ic">${svg(icon)}</span><span>${label}</span></a>`
+const soon = (icon, label) =>
+  `<div class="nb-item nb-soon"><span class="nb-ic">${svg(icon)}</span><span>${label}</span><em>SOON</em></div>`
+const section = (icon, title, body) =>
+  `<div class="nb-sec"><div class="nb-sec-title">${svg(icon)}<span>${title}</span></div>${body}</div>`
+
+export async function renderNavbar() {
+  initTheme()
+  const el = document.getElementById('navbar')
+  if (!el) return
+  el.classList.add('nb')
+
   const { data: { session } } = await supabase.auth.getSession()
-  if (!session) return
-  const { data } = await supabase.from('profiles').select('wallet_balance').eq('id', session.user.id).single()
-  const raw = (session.user.email || 'there').split('@')[0].replace(/[._-]+/g, ' ')
-  const name = raw.charAt(0).toUpperCase() + raw.slice(1)
-  document.getElementById('home-greet').textContent = greeting()
-  document.getElementById('home-name').textContent = 'Hi, ' + name
-  const amt = document.getElementById('home-balance-amt'), eye = document.getElementById('home-eye')
-  const text = fmt(data?.wallet_balance)
-  let hidden = false
-  try { hidden = localStorage.getItem('sp-hide-bal') === '1' } catch {}
-  const paint = () => {
-    amt.textContent = hidden ? '₦ • • • • •' : text
-    eye.innerHTML = svg(hidden ? 'eyeoff' : 'eye')
+  let profile = null
+  if (session) {
+    const { data } = await supabase.from('profiles').select('*').eq('id', session.user.id).single()
+    profile = data
   }
-  eye.addEventListener('click', () => { hidden = !hidden; try { localStorage.setItem('sp-hide-bal', hidden ? '1' : '0') } catch {} paint(); window.dispatchEvent(new Event('sp-bal-change')) })
-  paint()
-  ;['home-hi', 'home-balance', 'home-history'].forEach(id => document.getElementById(id).classList.remove('hidden'))
-  document.getElementById('home-rows').innerHTML = [
-    ['Transactions', 'Wallet deposits and spends', 'card', 'dashboard.html?section=wallet'],
-    ['Numbers', "Numbers you've bought", 'mobile', 'dashboard.html?section=mine']
-  ].map(r => `<a class="hm-row" href="${r[3]}"><span class="hm-ri">${svg(r[2])}</span><span class="hm-rt"><b>${r[0]}</b><span>${r[1]}</span></span>${svg('chev')}</a>`).join('')
-}
+  const isAdmin = profile?.role === 'admin'
+  const email = session?.user?.email || ''
+  const initial = (email[0] || 'U').toUpperCase()
+  el.classList.toggle('nb-in', !!session)
 
-// ---- Services grid ----
-function draw(items) {
-  grid.innerHTML = ''
-  emptyMsg.classList.toggle('hidden', items.length > 0)
-  items.forEach(s => {
-    const a = document.createElement('a')
-    a.className = 'service-card'
-    a.href = 'dashboard.html?service=' + encodeURIComponent(s.id)
-    const ic = document.createElement('span')
-    ic.className = 'service-icon'
-    fillIcon(ic, s)
-    const name = document.createElement('span'); name.style.cssText = 'font-weight:700;font-size:.9rem'; name.textContent = s.name
-    const price = document.createElement('span'); price.className = 'muted'; price.style.fontSize = '.8rem'; price.textContent = `from ${fmt(s.min)}`
-    const c = document.createElement('span'); c.style.cssText = 'font-size:.75rem;color:rgb(var(--highlight))'; c.textContent = `${s.countries} ${s.countries === 1 ? 'country' : 'countries'}`
-    a.append(ic, name, price, c)
-    grid.appendChild(a)
+  const body = session ? `
+    <div class="nb-hero">
+      <div class="nb-who"><span class="nb-av">${esc(initial)}</span><span class="nb-mail">${esc(email)}</span></div>
+      <div class="nb-bal-l">Balance</div>
+      <div class="nb-bal mono js-bal" data-v="${esc(fmt(profile?.wallet_balance))}">${esc(fmt(profile?.wallet_balance))}</div>
+      <div class="nb-hero-btns">
+        <a class="nb-b1" href="dashboard.html?section=wallet">${svg('plus')} Fund</a>
+        <a class="nb-b2" href="dashboard.html?section=wallet">${svg('clock')} History</a>
+      </div>
+    </div>
+    ${section('grid', 'DASHBOARD',
+      item('index.html', 'home', 'Overview') +
+      item('dashboard.html', 'plus', 'Get a number') +
+      item('dashboard.html?section=mine', 'mobile', 'My numbers') +
+      item('dashboard.html?section=wallet', 'card', 'Wallet'))}
+    ${section('shield', 'VERIFICATIONS',
+      item('dashboard.html', 'phone', 'One-time numbers') +
+      item('dashboard.html?kind=real', 'clock', 'Longer-term numbers'))}
+    ${section('rocket', 'MORE', item('social.html', 'rocket', 'Social Boost') + soon('send', 'Telegram Premium'))}
+    ${isAdmin ? section('shield', 'ADMIN', item('admin.html', 'shield', 'Admin dashboard')) : ''}
+    <div class="nb-help"><b>Need help?</b><span>Tap below and pick how you want to reach us.</span>
+      <button type="button" id="nb-support">${svg('chat')} Contact support</button></div>
+  ` : `
+    <div class="nb-hero">
+      <div class="nb-bal-l">Welcome</div>
+      <div class="nb-hello">Virtual numbers, paid in naira.</div>
+      <div class="nb-hero-btns">
+        <a class="nb-b1" href="signup.html">Get started</a>
+        <a class="nb-b2" href="login.html">Sign in</a>
+      </div>
+    </div>
+    ${section('grid', 'EXPLORE', item('index.html', 'home', 'Home'))}
+    <div class="nb-help"><b>Need help?</b><span>Tap below and pick how you want to reach us.</span>
+      <button type="button" id="nb-support">${svg('chat')} Contact support</button></div>
+  `
+
+  el.innerHTML = `
+    <button id="nb-toggle" class="nb-btn" aria-label="Open menu" aria-expanded="false">
+      <span class="nb-i-open">${svg('burger')}</span><span class="nb-i-close">${svg('x')}</span>
+    </button>
+    <a href="index.html" class="logo">
+      <img src="assets/logo.png" alt="SwiftPlug logo" />
+      <span>swift<span class="accent">plug</span></span>
+    </a>
+    <div class="nb-right">
+      ${session
+        ? `<a class="nb-wallet" href="dashboard.html?section=wallet">${svg('card')}<span class="mono js-bal" data-v="${esc(fmt(profile?.wallet_balance))}">${esc(fmt(profile?.wallet_balance))}</span></a>
+           <button class="nb-avatar" id="nb-avatar" aria-label="Open menu">${esc(initial)}</button>`
+        : `<a class="nb-signin" href="login.html">Sign in</a>`}
+    </div>
+    <div id="nb-overlay" class="nb-overlay"></div>
+    <aside id="nb-panel" class="nb-panel" aria-label="Menu">
+      <div class="nb-scroll">${body}</div>
+      <div class="nb-foot">
+        <button type="button" class="nb-appear" id="nb-theme"><span>Appearance</span><span class="nb-switch"><span class="nb-knob"></span></span></button>
+        <div class="nb-foot-row">
+          <a href="index.html" class="nb-flink">${svg('back')} Back to home</a>
+          ${session ? `<button type="button" class="nb-flink" id="nb-signout">${svg('out')} Sign out</button>` : ''}
+        </div>
+      </div>
+    </aside>
+  `
+
+  const panel = document.getElementById('nb-panel')
+  const overlay = document.getElementById('nb-overlay')
+  const toggleBtn = document.getElementById('nb-toggle')
+  const themeBtn = document.getElementById('nb-theme')
+
+  function setOpen(open) {
+    panel.classList.toggle('open', open)
+    overlay.classList.toggle('open', open)
+    toggleBtn.classList.toggle('open', open)
+    toggleBtn.setAttribute('aria-expanded', String(open))
+    document.body.classList.toggle('nb-lock', open)
+  }
+  const syncTheme = () => themeBtn.classList.toggle('on', document.documentElement.classList.contains('light'))
+  syncTheme()
+
+  toggleBtn.addEventListener('click', () => setOpen(!panel.classList.contains('open')))
+  overlay.addEventListener('click', () => setOpen(false))
+  document.getElementById('nb-avatar')?.addEventListener('click', () => setOpen(true))
+  panel.addEventListener('click', (e) => { if (e.target.closest('a.nb-item, a.nb-b1, a.nb-b2, a.nb-flink')) setOpen(false) })
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') setOpen(false) })
+  themeBtn.addEventListener('click', () => { toggleTheme(); syncTheme() })
+  document.getElementById('nb-support')?.addEventListener('click', () => {
+    setOpen(false)
+    document.querySelector('.sp-fab')?.click()
   })
-}
-
-async function loadServices() {
-  grid.innerHTML = Array.from({ length: 6 }, () => '<div class="skeleton-card"></div>').join('')
-  try {
-    const [{ data: services }, { data: rows }] = await Promise.all([
-      supabase.from('services').select('id,name,icon_url').eq('is_active', true),
-      supabase.from('catalog').select('service_id,country_id,sell_price').eq('number_type', 'disposable')
-    ])
-    list = (services || []).map(s => {
-      const r = (rows || []).filter(x => x.service_id === s.id)
-      return { ...s, min: r.length ? Math.min(...r.map(x => Number(x.sell_price))) : null, countries: new Set(r.map(x => x.country_id)).size }
-    }).filter(s => s.min != null)
-    list = sortServices(list, () => 1)
-    draw(list)
-  } catch (e) {
-    grid.innerHTML = ''
-    emptyMsg.classList.remove('hidden')
+  // ---- Hide balance: one setting (localStorage 'sp-hide-bal') shared by the header, menu and home card ----
+  const paintBal = () => {
+    let hide = false
+    try { hide = localStorage.getItem('sp-hide-bal') === '1' } catch (_e) { /* ignore */ }
+    document.querySelectorAll('.js-bal').forEach(n => { n.textContent = hide ? '₦ • • • • •' : n.dataset.v })
   }
-}
+  paintBal()
+  window.addEventListener('sp-bal-change', paintBal)
+  window.addEventListener('storage', paintBal)
 
-document.getElementById('home-search').addEventListener('input', (e) => {
-  const q = e.target.value.trim().toLowerCase()
-  draw(list.filter(s => s.name.toLowerCase().includes(q)))
-})
-
-loadAccount()
-loadServices()
+  // ---- Bottom tab bar (signed-in, phones) ----
+  document.getElementById('tb-bar')?.remove()
+  if (session && !document.querySelector('.admin-layout')) {
+    const tabs = [
+      ['index.html', 'home', 'Home'],
+      ['dashboard.html?section=wallet', 'card', 'Wallet'],
+      ['dashboard.html?section=get', 'plus', 'Buy', true],
+      ['dashboard.html?section=mine', 'mobile', 'Numbers'],
+      [null, 'menuic', 'Menu']
+    ]
+    const bar = document.createElement('nav')
+    bar.id = 'tb-bar'; bar.className = 'tb-bar'; bar.setAttribute('aria-label', 'Main')
+    const on = (href) => {
+      const u = new URL(href, location.href), q = new URLSearchParams(location.search)
+      if (u.pathname !== location.pathname) return false
+      const want = u.searchParams.get('section') || ''
+      const have = q.get('section') || (location.pathname.endsWith('dashboard.html') && !q.get('section') ? 'get' : '')
+      return want === have
+    }
+    bar.innerHTML = tabs.map(t => {
+      const cls = 'tb-tab' + (t[3] ? ' tb-main' : '') + (t[0] && on(t[0]) ? ' active' : '')
+      const inner = `<span class="tb-ic">${svg(t[1])}</span><span class="tb-lb">${t[2]}</span>`
+      return t[0] ? `<a class="${cls}" href="${t[0]}">${inner}</a>` : `<button type="button" class="${cls}" id="tb-menu">${inner}</button>`
+    }).join('')
+    document.body.appendChild(bar)
+    document.body.classList.add('tb-on')
+    document.getElementById('tb-menu').addEventListener('click', () => toggleBtn.click())
+  }
+  document.getElementById('nb-signout')?.addEventListener('click', async () => {
+    await supabase.auth.signOut()
+    window.location.href = 'index.html'
+  })
+        }
