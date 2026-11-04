@@ -1,6 +1,9 @@
 import { supabase } from './supabaseClient.js'
 import { SUPABASE_URL } from './config.js'
 
+// Text from SMS senders is untrusted: always escape before putting it in the page.
+const esc = (v) => String(v ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]))
+
 // Renders one rented number as a card: countdown timer (disposable) + live inbox.
 // Real numbers also show a call log, since Twilio writes incoming calls to the `calls` table.
 // Returns the DOM element. Cleans itself up (stops timers/subscriptions) via el._cleanup().
@@ -100,7 +103,7 @@ export function createNumberCard(number, onExpired, opts = {}) {
     }
     if (!messages.length) { inboxEl.innerHTML = otpEl ? '' : '<p class="muted" style="font-size:.9rem">Waiting for messages...</p>'; return }
     inboxEl.innerHTML = messages.map(m => `
-      <div class="message-bubble"><div class="from">${m.from_number || ''}</div><div>${m.body || ''}</div></div>
+      <div class="message-bubble"><div class="from">${esc(m.from_number)}</div><div>${esc(m.body)}</div></div>
     `).join('')
   }
 
@@ -121,7 +124,7 @@ export function createNumberCard(number, onExpired, opts = {}) {
       if (!calls.length) { callsEl.innerHTML = '<p class="muted" style="font-size:.85rem">No calls yet.</p>'; return }
       callsEl.innerHTML = calls.map(c => `
         <div class="message-bubble">
-          <div class="from">${c.from_number || 'Unknown'}</div>
+          <div class="from">${esc(c.from_number || 'Unknown')}</div>
           <div>${c.duration_seconds ? c.duration_seconds + 's' : 'Missed/no answer'} — ${new Date(c.received_at).toLocaleString()}</div>
         </div>
       `).join('')
@@ -171,4 +174,4 @@ export function createNumberCard(number, onExpired, opts = {}) {
   }
 
   return el
-        }
+}
