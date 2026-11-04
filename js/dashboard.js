@@ -204,6 +204,21 @@ async function updateDisposableTotals() {
   else row.classList.add('hidden')
 }
 
+// Shows a purchase error. When the problem is a low balance, adds an "Add funds" button that jumps to the wallet.
+function showBuyError(errorEl, err) {
+  errorEl.textContent = err.message || 'Purchase failed'
+  if (err.status === 402 || /insufficient/i.test(err.message || '')) {
+    errorEl.append(' ')
+    const b = document.createElement('button')
+    b.type = 'button'
+    b.textContent = 'Add funds'
+    b.style.cssText = 'background:none;border:none;padding:0;font:inherit;font-weight:700;text-decoration:underline;cursor:pointer;color:inherit'
+    b.addEventListener('click', () => document.querySelector('[data-section="wallet"]').click())
+    errorEl.appendChild(b)
+  }
+  errorEl.classList.remove('hidden')
+}
+
 async function buyDisposable() {
   const errorEl = document.getElementById('derror')
   const btn = document.getElementById('dbuy-btn')
@@ -217,7 +232,7 @@ async function buyDisposable() {
       body: JSON.stringify({ pricing_id: dPricing.id, quantity: dQty })
     })
     const result = await res.json()
-    if (!res.ok) throw new Error(result.error || 'Purchase failed')
+    if (!res.ok) { const e = new Error(result.error || 'Purchase failed'); e.status = res.status; throw e }
 
     await loadSidebarBalance()
     // Show the new number(s) right here, under the Buy button, with timer, OTP, copy and cancel.
@@ -230,8 +245,7 @@ async function buyDisposable() {
     })
     box.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
   } catch (err) {
-    errorEl.textContent = err.message
-    errorEl.classList.remove('hidden')
+    showBuyError(errorEl, err)
   } finally {
     btn.disabled = false; btn.textContent = 'Buy'
   }
@@ -308,12 +322,11 @@ async function buyReal() {
       body: JSON.stringify({ pricing_id: rSelectedPlan.id, quantity: rQty })
     })
     const result = await res.json()
-    if (!res.ok) throw new Error(result.error || 'Purchase failed')
+    if (!res.ok) { const e = new Error(result.error || 'Purchase failed'); e.status = res.status; throw e }
     await loadSidebarBalance()
     document.querySelector('[data-section="mine"]').click()
   } catch (err) {
-    errorEl.textContent = err.message
-    errorEl.classList.remove('hidden')
+    showBuyError(errorEl, err)
   } finally {
     btn.disabled = false; btn.textContent = 'Buy'
   }
@@ -414,4 +427,4 @@ async function loadHistory() {
     </div>
   `).join('')
     }
-        
+      
