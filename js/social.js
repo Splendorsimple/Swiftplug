@@ -21,14 +21,22 @@ async function callFn(name, body) {
     body: JSON.stringify(body || {})
   })
   const out = await res.json().catch(() => ({}))
-  if (!res.ok) throw new Error(out.error || 'Something went wrong')
+  if (!res.ok) { const e = new Error(out.error || 'Something went wrong'); e.status = res.status; throw e }
   return out
 }
 
-function say(text, bad) {
+function say(text, bad, addFunds) {
   const m = $('sb-msg')
   m.textContent = text
   m.className = 'sb-msg' + (bad ? ' bad' : ' good')
+  if (addFunds) {
+    m.append(' ')
+    const a = document.createElement('a')
+    a.href = 'dashboard.html?section=wallet'
+    a.textContent = 'Add funds'
+    a.style.cssText = 'font-weight:700;text-decoration:underline;color:inherit'
+    m.appendChild(a)
+  }
 }
 
 function total() {
@@ -114,7 +122,7 @@ $('sb-buy').addEventListener('click', async (e) => {
     $('sb-link').value = ''
     await loadOrders()
   } catch (err) {
-    say(err.message, true)
+    say(err.message, true, err.status === 402 || /insufficient/i.test(err.message || ''))
   }
   btn.disabled = false; btn.textContent = 'Place order'
 })
@@ -122,3 +130,4 @@ $('sb-buy').addEventListener('click', async (e) => {
 await loadCatalog()
 await loadOrders()
 refreshOrders()
+                                
