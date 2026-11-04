@@ -4,8 +4,10 @@
 <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Create your account — SwiftPlug</title>
 <link rel="icon" href="assets/favicon.png" />
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=JetBrains+Mono:wght@400;600&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com" /><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/style.css" />
+<link rel="stylesheet" href="css/ui-v2.css" />
 </head>
 <body>
 <div id="navbar" class="navbar"></div>
@@ -13,8 +15,8 @@
   <div id="signup-form-wrap">
     <h1 style="font-size:1.6rem">Create your account</h1>
     <form id="signup-form">
-      <div class="field"><input type="email" id="email" placeholder="Email" required /></div>
-      <div class="field"><input type="password" id="password" placeholder="Password (min 6 characters)" minlength="6" required /></div>
+      <div class="field"><input type="email" id="email" autocomplete="email" inputmode="email" autocapitalize="none" placeholder="Email" required /></div>
+      <div class="field"><input type="password" id="password" autocomplete="new-password" placeholder="Password (min 6 characters)" minlength="6" required /></div>
       <div class="field" style="display:flex;gap:8px;align-items:flex-start">
         <input type="checkbox" id="agree" style="width:auto;margin-top:3px" required />
         <label style="margin:0" for="agree">I agree to the <a href="terms.html" class="link">Terms of Service</a> and acceptable use policy.</label>
