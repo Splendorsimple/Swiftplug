@@ -29,7 +29,7 @@ function toHref(kind, raw) {
 const style = document.createElement('style')
 style.textContent = `
 .sp-fab{position:fixed;right:16px;bottom:18px;z-index:25;display:flex;align-items:center;gap:8px;padding:12px 18px;border:none;border-radius:999px;cursor:pointer;
-  background:rgb(var(--accent));color:rgb(var(--accentink));font:700 .9rem 'Space Grotesk',sans-serif;box-shadow:0 10px 28px rgba(0,0,0,.35)}
+  background:rgb(var(--accent));color:rgb(var(--accentink));font:700 .9rem 'Inter',sans-serif;box-shadow:0 10px 28px rgba(0,0,0,.35)}
 .sp-fab:active{transform:scale(.97)}
 .sp-overlay{position:fixed;inset:0;z-index:60;background:rgba(0,0,0,.55);display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s}
 .sp-overlay.open{opacity:1;pointer-events:auto}
