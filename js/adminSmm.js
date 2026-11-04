@@ -180,5 +180,4 @@ async function render() {
   }
   $('#svc-q').addEventListener('input', () => { clearTimeout(window.__smmT); window.__smmT = setTimeout(loadServices, 300) })
   loadServices()
-          }
-      
+                                                                                                                                               }
