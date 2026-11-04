@@ -4,8 +4,10 @@
 <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Workspace — SwiftPlug</title>
 <link rel="icon" href="assets/favicon.png" />
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=JetBrains+Mono:wght@400;600&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com" /><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/style.css" />
+<link rel="stylesheet" href="css/ui-v2.css" />
 <script src="https://js.paystack.co/v1/inline.js"></script>
 </head>
 <body>
@@ -43,10 +45,10 @@
           <button class="link" id="back-to-services" style="background:none;border:none;padding:0;margin-bottom:12px">← Back to services</button>
           <h3 id="chosen-service-name"></h3>
           <div class="field">
-                         <select id="dcountry-select"><option value="">Select a country</option></select>
+            <select id="dcountry-select"><option value="">Select a country</option></select>
           </div>
           <div id="dqty-wrap" class="hidden">
-                        <div id="dtiers" class="tier-row hidden"></div>
+            <div id="dtiers" class="tier-row hidden"></div>
             <div class="field" style="display:flex;align-items:center;gap:10px">
               <label style="margin:0">Quantity</label>
               <div class="qty-control" style="width:120px"><button id="dqty-minus">−</button><span id="dqty-value" class="mono">1</span><button id="dqty-plus">+</button></div>
@@ -61,7 +63,7 @@
             <button class="btn-primary" id="dbuy-btn">Buy</button>
           </div>
         </div>
-                <div id="dresult" style="margin-top:16px;display:grid;gap:12px"></div>
+        <div id="dresult" style="margin-top:16px;display:grid;gap:12px"></div>
       </div>
 
       <!-- Real numbers flow -->
