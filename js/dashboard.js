@@ -121,7 +121,7 @@ function renderServiceGrid(list) {
     const price = document.createElement('span'); price.className = 'muted'; price.style.fontSize = '.8rem'
     price.textContent = s.minPrice != null ? 'from ' + fmt(s.minPrice) : 'Unavailable'
     const c = document.createElement('span'); c.style.cssText = 'font-size:.75rem;color:rgb(var(--highlight))'
-    c.textContent = `Available in ${s.countryCount} countries`
+    c.textContent = `Available in ${s.countryCount} ${s.countryCount === 1 ? 'country' : 'countries'}`
     btn.append(ic, name, price, c)
     btn.addEventListener('click', () => {
       selectedService = { id: s.id, name: s.name }
@@ -146,7 +146,8 @@ function fillCountrySelect() {
     : '<option value="">No countries available yet</option>'
   dCountry = null; dPricing = null
   document.getElementById('dqty-wrap').classList.add('hidden')
-  }
+}
+
 function resetDisposableForm() {
   dCountry = null; dPricing = null; dQty = 1
   document.getElementById('dqty-value').textContent = '1'
@@ -316,7 +317,8 @@ async function buyReal() {
   } finally {
     btn.disabled = false; btn.textContent = 'Buy'
   }
-    }
+}
+
 // ================================================================
 // MY NUMBERS
 // ================================================================
@@ -361,8 +363,11 @@ function updatePayBtnLabel() {
 }
 
 function payWithPaystack() {
-  const amount = Number(document.getElementById('topup-amount').value || 0)
+  const amount = Math.round(Number(document.getElementById('topup-amount').value || 0))
   const msg = document.getElementById('topup-msg')
+  if (!Number.isFinite(amount) || amount < 100) { msg.textContent = 'Enter an amount of at least ' + fmt(100) + '.'; return }
+  if (amount > 1000000) { msg.textContent = 'That amount is too large for one top-up.'; return }
+  msg.textContent = ''
   if (!window.PaystackPop) { msg.textContent = 'Payment system still loading, try again in a moment.'; return }
 
   const handler = window.PaystackPop.setup({
@@ -392,7 +397,7 @@ async function verifyPayment(reference) {
     await loadHistory()
     msg.textContent = `Wallet topped up with ${fmt(result.credited)}!`
   } catch (err) {
-    msg.textContent = err.message
+    msg.textContent = (err.message || 'Verification failed') + ' If you were charged, your wallet will update shortly. If it does not, contact Support with your payment receipt.'
   }
 }
 
@@ -404,8 +409,9 @@ async function loadHistory() {
   emptyMsg.classList.add('hidden')
   box.innerHTML = data.map(t => `
     <div style="display:flex;justify-content:space-between;padding:12px 16px;border-bottom:1px solid rgba(var(--line),.06)">
-      <div><div>${t.note || t.type}</div><div class="muted" style="font-size:.75rem">${new Date(t.created_at).toLocaleString()}</div></div>
+      <div><div>${String(t.note || t.type || '').replace(/[&<>"']/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]))}</div><div class="muted" style="font-size:.75rem">${new Date(t.created_at).toLocaleString()}</div></div>
       <span class="mono" style="color:${t.amount >= 0 ? 'rgb(var(--highlight))' : 'rgb(var(--fg))'}">${t.amount >= 0 ? '+' : '-'}${fmt(Math.abs(t.amount))}</span>
     </div>
   `).join('')
-      }
+    }
+        
