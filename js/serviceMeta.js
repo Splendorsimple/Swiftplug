@@ -1,3 +1,5 @@
+import { BRAND_PATHS } from './brandIcons.js'
+
 // Hardcoded logos + display order for services. Order here = order shown (most popular first).
 // [match words in the service name, logo name, brand colour]
 const BRANDS = [
@@ -42,6 +44,9 @@ const BRANDS = [
   [['kakao'], 'kakaotalk', 'F5C400']
 ]
 
+const LOCAL = new Set(Object.keys(BRAND_PATHS))
+const iconUrl = (name) => 'data:image/svg+xml,' + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="${BRAND_PATHS[name]}"/></svg>`)
+
 function find(name) {
   const n = (name || '').toLowerCase().trim()
   if (n === 'x') return BRANDS.findIndex(b => b[1] === 'x')
@@ -65,12 +70,12 @@ export function sortServices(list, hasPrice) {
 // Fills the icon tile. Known brand -> its logo. Otherwise the admin Icon URL, otherwise the first letter.
 export function fillIcon(ic, s) {
   const i = find(s.name)
-  if (i !== -1) {
+  if (i !== -1 && LOCAL.has(BRANDS[i][1])) {
     const b = BRANDS[i]
     ic.classList.add('has-img')
     const logo = document.createElement('span')
-    const url = `https://cdn.jsdelivr.net/npm/simple-icons@9.21.0/icons/${b[1]}.svg`
-    logo.style.cssText = `display:block;width:26px;height:26px;background:#${b[2]};-webkit-mask:url(${url}) center/contain no-repeat;mask:url(${url}) center/contain no-repeat`
+    const url = iconUrl(b[1])
+    logo.style.cssText = `display:block;width:26px;height:26px;background:#${b[2]};-webkit-mask:url('${url}') center/contain no-repeat;mask:url('${url}') center/contain no-repeat`
     ic.appendChild(logo)
   } else if (s.icon_url) {
     ic.classList.add('has-img')
@@ -81,4 +86,4 @@ export function fillIcon(ic, s) {
   } else {
     ic.textContent = (s.name || '?')[0]
   }
-                                                                             }
+}
