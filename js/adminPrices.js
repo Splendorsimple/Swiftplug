@@ -37,6 +37,7 @@ export async function mountPrices(root) {
     </div>`
   const $ = (s) => root.querySelector(s)
   let rows = [], providers = [], shown = PAGE
+  try { const v = sessionStorage.getItem('ps_view'); if (v) { $('#ps-view').value = v; sessionStorage.removeItem('ps_view') } } catch (_e) { /* ignore */ }
 
   async function load() {
     const [{ data: provs }, { data: pr, error }] = await Promise.all([
@@ -131,4 +132,4 @@ export async function mountPrices(root) {
     await load()
   })
   await load()
-}
+      }
