@@ -859,3 +859,6 @@ h1, h2, h3, .heading, .btn { font-family: 'Inter', system-ui, -apple-system, 'Se
 /* ===== v11: no flash of the unfinished page while it loads ===== */
 #navbar:empty ~ main { visibility: hidden; animation: sp-reveal 0s 6s forwards; }
 @keyframes sp-reveal { to { visibility: visible; } }
+/* ===== v12: new logo (no colour filter, so it shows true) ===== */
+html:not(.light) .navbar .logo img, .navbar .logo img { filter: none; border-radius: 10px; }
+.navbar .logo span { font-weight: 800; letter-spacing: -.02em; }
