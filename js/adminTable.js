@@ -54,6 +54,7 @@ export function renderAdminTable(containerEl, { table, title, columns, hint }) {
   function cellHtml(col, row) {
     const v = row[col.key]
     if (col.type === 'boolean') return v ? '<span class="badge on">Yes</span>' : '<span class="badge off">No</span>'
+    if (col.mask && v) return '<span class="mono">\u2022\u2022\u2022\u2022\u2022\u2022 ' + esc(String(v).slice(-4)) + '</span>'
     return esc(v)
   }
 
