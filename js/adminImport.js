@@ -18,7 +18,10 @@ nav.addEventListener('click', (e) => {
 async function render() {
   const { data: providers } = await supabase.from('providers').select('id,name,is_active').order('name')
   content.innerHTML = `
-    <div class="admin-head"><h2>Import prices</h2></div>
+    <div class="admin-head"><h2>Prices</h2></div>
+    <div id="ps-root"></div>
+    <details class="card" style="margin-top:16px;padding:12px"><summary style="cursor:pointer;font-weight:700">Import prices from a provider</summary>
+
     <p class="muted admin-hint">Pulls a provider's price list and creates your price rows for the services you have. Prices you edit by hand are never overwritten. Always tap Preview first.</p>
     <div class="card admin-form">
       <div class="form-row"><label>Provider</label>
@@ -35,7 +38,7 @@ async function render() {
       <p class="error-text hidden" id="imp-err"></p>
     </div>
     <div id="imp-out"></div>
-    <div id="ps-root"></div>`
+    </details>`
   const mountPanel = () => import('./adminPrices.js').then(m => m.mountPrices(content.querySelector('#ps-root'))).catch((e) => console.warn('Prices panel skipped', e))
   mountPanel()
   const $ = (id) => content.querySelector(id)
