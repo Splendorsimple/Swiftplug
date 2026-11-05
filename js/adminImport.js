@@ -34,7 +34,10 @@ async function render() {
       </div>
       <p class="error-text hidden" id="imp-err"></p>
     </div>
-    <div id="imp-out"></div>`
+    <div id="imp-out"></div>
+    <div id="ps-root"></div>`
+  const mountPanel = () => import('./adminPrices.js').then(m => m.mountPrices(content.querySelector('#ps-root'))).catch((e) => console.warn('Prices panel skipped', e))
+  mountPanel()
   const $ = (id) => content.querySelector(id)
   const applyBtn = $('#imp-apply')
   let lastKey = ''
@@ -87,9 +90,14 @@ async function render() {
     try {
       const r = await call('apply')
       $('#imp-out').innerHTML = `<div class="card"><p><b>Done.</b> Created ${r.created}, refreshed ${r.updated}, left ${r.skippedYours} of yours alone. Check them in Countries & Pricing.</p></div>`
+      try { // fill in the stock counts right away
+        const { data: { session } } = await supabase.auth.getSession()
+        await fetch(`${SUPABASE_URL}/functions/v1/sync-stock`, { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` }, body: JSON.stringify({ provider_id: $('#imp-provider').value }) })
+      } catch (_e) { /* the 10-minute refresh will catch up */ }
+      mountPanel()
     } catch (err) {
       $('#imp-err').textContent = err.message; $('#imp-err').classList.remove('hidden')
       applyBtn.disabled = false
     } finally { applyBtn.textContent = 'Apply import' }
   })
-                                                                                                                                                                                                       }
+}

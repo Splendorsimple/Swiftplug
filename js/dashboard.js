@@ -68,13 +68,19 @@ async function initDisposableFlow() {
   const { data } = await supabase.from('services').select('*').eq('is_active', true)
   const { data: catalogRows } = await supabase.from('catalog').select('*').eq('number_type', 'disposable')
   const { data: countryRows } = await supabase.from('countries').select('id,name,flag_emoji')
-  dCatalog = catalogRows || []
+  // Rows the provider has run out of (stock 0) are hidden. Unknown stock (null) still shows.
+  dCatalog = (catalogRows || []).filter(r => r.stock == null || r.stock > 0)
   dCountries = countryRows || []
   allServices = (data || []).map(s => {
-    const rows = (catalogRows || []).filter(r => r.service_id === s.id)
+    const rows = dCatalog.filter(r => r.service_id === s.id)
     const minPrice = rows.length ? Math.min(...rows.map(r => r.sell_price)) : null
     const countryCount = new Set(rows.map(r => r.country_id)).size
-    return { ...s, minPrice, countryCount }
+    // numbers in stock: best server per country, added up (only when the provider told us)
+    const perCountry = {}
+    rows.forEach(r => { if (r.stock != null) perCountry[r.country_id] = Math.max(perCountry[r.country_id] ?? 0, r.stock) })
+    const known = Object.keys(perCountry).length > 0
+    const totalStock = known ? Object.values(perCountry).reduce((a, b) => a + b, 0) : null
+    return { ...s, minPrice, countryCount, totalStock }
   })
   renderServiceGrid(allServices)
   const qp = new URLSearchParams(location.search)
@@ -123,6 +129,11 @@ function renderServiceGrid(list) {
     const c = document.createElement('span'); c.style.cssText = 'font-size:.75rem;color:rgb(var(--highlight))'
     c.textContent = `Available in ${s.countryCount} ${s.countryCount === 1 ? 'country' : 'countries'}`
     btn.append(ic, name, price, c)
+    if (s.totalStock != null && s.minPrice != null) {
+      const st = document.createElement('span'); st.className = 'muted'; st.style.fontSize = '.75rem'
+      st.textContent = `${s.totalStock.toLocaleString('en-NG')} in stock`
+      btn.append(st)
+    }
     btn.addEventListener('click', () => {
       selectedService = { id: s.id, name: s.name }
       document.getElementById('chosen-service-name').textContent = s.name
@@ -136,13 +147,14 @@ function renderServiceGrid(list) {
 
 function fillCountrySelect() {
   const sel = document.getElementById('dcountry-select')
-  const best = {}
+  const best = {}, left = {}
   dCatalog.filter(r => r.service_id === selectedService.id).forEach(r => {
     best[r.country_id] = Math.min(best[r.country_id] ?? Infinity, Number(r.sell_price))
+    if (r.stock != null) left[r.country_id] = Math.max(left[r.country_id] ?? 0, r.stock)
   })
   const opts = dCountries.filter(c => best[c.id] != null).sort((a, b) => a.name.localeCompare(b.name))
   sel.innerHTML = opts.length
-    ? '<option value="">Select a country</option>' + opts.map(c => `<option value="${c.id}">${c.flag_emoji || ''} ${c.name} - from ${fmt(best[c.id])}</option>`).join('')
+    ? '<option value="">Select a country</option>' + opts.map(c => `<option value="${c.id}">${c.flag_emoji || ''} ${c.name} - from ${fmt(best[c.id])}${left[c.id] != null ? ' · ' + left[c.id].toLocaleString('en-NG') + ' left' : ''}</option>`).join('')
     : '<option value="">No countries available yet</option>'
   dCountry = null; dPricing = null
   document.getElementById('dqty-wrap').classList.add('hidden')
@@ -159,7 +171,7 @@ let dOptions = []
 async function loadDisposablePricing() {
   const { data } = await supabase.from('catalog').select('*')
     .eq('service_id', selectedService.id).eq('country_id', dCountry.id).eq('number_type', 'disposable').order('tier')
-  dOptions = data || []
+  dOptions = (data || []).filter(o => o.stock == null || o.stock > 0)
   const box = document.getElementById('dtiers')
   if (!dOptions.length) {
     dPricing = null
@@ -177,16 +189,21 @@ async function loadDisposablePricing() {
     dPricing = dOptions.find(o => o.id === btn.dataset.id)
     box.querySelectorAll('.tier-chip').forEach(b => b.classList.toggle('active', b === btn))
     setDQty(dQty)
-    document.getElementById('dmax-note').textContent = `max ${dPricing.max_quantity_per_purchase || 10} per purchase`
+    document.getElementById('dmax-note').textContent = `max ${maxQtyFor(dPricing)} per purchase`
   }))
   document.getElementById('dqty-wrap').classList.remove('hidden')
-  document.getElementById('dmax-note').textContent = `max ${dPricing.max_quantity_per_purchase || 10} per purchase`
+  document.getElementById('dmax-note').textContent = `max ${maxQtyFor(dPricing)} per purchase`
   dQty = 1; document.getElementById('dqty-value').textContent = '1'
   await updateDisposableTotals()
 }
 
+function maxQtyFor(p) {
+  const cap = p?.max_quantity_per_purchase || 10
+  return p?.stock != null ? Math.max(1, Math.min(cap, p.stock)) : cap
+}
+
 function setDQty(v) {
-  const max = dPricing?.max_quantity_per_purchase || 10
+  const max = maxQtyFor(dPricing)
   dQty = Math.min(max, Math.max(1, v))
   document.getElementById('dqty-value').textContent = dQty
   updateDisposableTotals()
@@ -426,5 +443,4 @@ async function loadHistory() {
       <span class="mono" style="color:${t.amount >= 0 ? 'rgb(var(--highlight))' : 'rgb(var(--fg))'}">${t.amount >= 0 ? '+' : '-'}${fmt(Math.abs(t.amount))}</span>
     </div>
   `).join('')
-    }
-      
+}
