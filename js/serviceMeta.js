@@ -1,4 +1,8 @@
-import { BRAND_PATHS } from './brandIcons.js'
+// Logos load safely: if a logo file is ever missing or damaged, the site still works and shows letters instead.
+const BRAND_PATHS = {}
+for (const f of ['./brandIcons1.js', './brandIcons2.js', './brandIcons3.js']) {
+  try { Object.assign(BRAND_PATHS, (await import(f)).default) } catch (e) { console.warn('Logo file skipped:', f) }
+}
 
 // Hardcoded logos + display order for services. Order here = order shown (most popular first).
 // [match words in the service name, logo name, brand colour]
