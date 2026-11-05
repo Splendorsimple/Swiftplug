@@ -856,4 +856,6 @@ h1, h2, h3, .heading, .btn { font-family: 'Inter', system-ui, -apple-system, 'Se
 .timer, .number-card .head > span:first-child, .number-card .otp-display {
   font-family: 'JetBrains Mono', ui-monospace, monospace; font-variant-numeric: tabular-nums;
 }
-
+/* ===== v11: no flash of the unfinished page while it loads ===== */
+#navbar:empty ~ main { visibility: hidden; animation: sp-reveal 0s 6s forwards; }
+@keyframes sp-reveal { to { visibility: visible; } }
