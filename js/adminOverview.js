@@ -40,6 +40,7 @@ async function render() {
   const pr = (prices.data || []).filter(p => p.is_active)
   const out = pr.filter(p => p.stock === 0).length
   const low = pr.filter(p => p.stock != null && p.stock > 0 && p.stock <= 10).length
+  const nocost = pr.filter(p => p.buy_cost == null).length
   const loss = pr.filter(p => p.buy_cost != null && Number(p.sell_price) < Number(p.buy_cost)).length
 
   const todo = []
@@ -49,6 +50,7 @@ async function render() {
   }
   if (out) todo.push({ text: `${out} price row${out === 1 ? ' is' : 's are'} out of stock and hidden from buyers`, go: 'import', view: 'out', btn: 'See them' })
   if (low) todo.push({ text: `${low} row${low === 1 ? ' has' : 's have'} 10 numbers or fewer left`, go: 'import', view: 'low', btn: 'See them' })
+  if (nocost) todo.push({ text: `${nocost} price row${nocost === 1 ? ' has' : 's have'} no cost from the provider, so the profit rule can't price ${nocost === 1 ? 'it' : 'them'}. Set your own price`, go: 'import', view: 'nocost', btn: 'Set prices' })
   if (loss) todo.push({ text: `${loss} row${loss === 1 ? ' sells' : 's sell'} below your cost`, go: 'import', view: 'loss', btn: 'Fix prices' })
   if (failedSmm.count) todo.push({ text: `${failedSmm.count} Social Boost order${failedSmm.count === 1 ? '' : 's'} failed this week (refunded)`, go: 'smm', btn: 'Open' })
   if (suspended.count) todo.push({ text: `${suspended.count} suspended user${suspended.count === 1 ? '' : 's'}`, go: 'users', btn: 'Users' })
