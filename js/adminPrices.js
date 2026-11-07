@@ -24,11 +24,12 @@ export async function mountPrices(root) {
         <button id="ps-refresh" class="btn-secondary" style="background:rgb(var(--accent));color:rgb(var(--accentink))">Refresh stock now</button></div>
       <p class="muted admin-hint" id="ps-sync">Loading...</p>
       <div class="form-row"><input id="ps-q" type="search" placeholder="Search country or service..." /></div>
-      <div class="form-row" style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+      <div class="form-row" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px">
         <select id="ps-prov"><option value="">All providers</option></select>
+        <select id="ps-server"><option value="">All servers</option></select>
         <select id="ps-view">
           <option value="">All rows</option><option value="out">Out of stock</option><option value="low">Low stock (10 or less)</option>
-          <option value="mine">Your own prices</option><option value="loss">Selling below cost</option><option value="off">Switched off</option>
+          <option value="mine">Your own prices</option><option value="nocost">No provider cost</option><option value="loss">Selling below cost</option><option value="off">Switched off</option>
         </select>
       </div>
       <p class="muted" id="ps-count" style="font-size:.85rem"></p>
@@ -36,21 +37,29 @@ export async function mountPrices(root) {
       <button id="ps-more" class="btn-secondary hidden" style="margin-top:10px">Show more</button>
     </div>`
   const $ = (s) => root.querySelector(s)
-  let rows = [], providers = [], shown = PAGE
+  let rows = [], providers = [], servers = [], shown = PAGE
+  try { const sv = sessionStorage.getItem('ps_server'); if (sv) { window.__psServer = sv; sessionStorage.removeItem('ps_server') } } catch (_e) { /* ignore */ }
   try { const v = sessionStorage.getItem('ps_view'); if (v) { $('#ps-view').value = v; sessionStorage.removeItem('ps_view') } } catch (_e) { /* ignore */ }
 
   async function load() {
-    const [{ data: provs }, { data: pr, error }] = await Promise.all([
+    const [{ data: provs }, { data: svs }, { data: pr, error }] = await Promise.all([
       supabase.from('providers').select('id,name,type,last_sync_at,last_sync_note').eq('type', 'disposable').order('name'),
+      supabase.from('servers').select('id,name').order('id'),
       supabase.from('pricing').select('id,sell_price,buy_cost,stock,stock_updated_at,tier,is_active,price_locked,is_imported,provider_id,countries(name,flag_emoji),services(name)')
         .eq('number_type', 'disposable').order('id').range(0, 1999)
     ])
     if (error) { $('#ps-sync').textContent = 'Could not load prices: ' + error.message; return }
     providers = provs || []
-    rows = (pr || []).sort((a, b) => (a.countries?.name || '').localeCompare(b.countries?.name || '') || (a.services?.name || '').localeCompare(b.services?.name || '') || (a.tier || 1) - (b.tier || 1))
+    servers = svs || []
+    const known = new Set(servers.map(x => x.id))
+    rows = (pr || []).filter(r => known.has(r.tier))
+    rows = rows.sort((a, b) => (a.countries?.name || '').localeCompare(b.countries?.name || '') || (a.services?.name || '').localeCompare(b.services?.name || '') || (a.tier || 1) - (b.tier || 1))
     const sel = $('#ps-prov'), keep = sel.value
     sel.innerHTML = '<option value="">All providers</option>' + providers.map(p => `<option value="${p.id}">${esc(p.name)}</option>`).join('')
     sel.value = keep
+    const ss = $('#ps-server'), keepS = ss.value || window.__psServer || ''
+    ss.innerHTML = '<option value="">All servers</option>' + servers.map(x => `<option value="${x.id}">${esc(x.name)}</option>`).join('')
+    ss.value = keepS; window.__psServer = ''
     $('#ps-sync').innerHTML = providers.length
       ? providers.map(p => `<b>${esc(p.name)}</b>: stock checked ${esc(ago(p.last_sync_at))}${p.last_sync_note ? ' &middot; ' + esc(p.last_sync_note) : ''}`).join('<br>') + '<br>Stock refreshes by itself every 10 minutes.'
       : 'No one-time provider yet.'
@@ -58,13 +67,15 @@ export async function mountPrices(root) {
   }
 
   function filtered() {
-    const q = $('#ps-q').value.trim().toLowerCase(), pv = $('#ps-prov').value, v = $('#ps-view').value
+    const q = $('#ps-q').value.trim().toLowerCase(), pv = $('#ps-prov').value, v = $('#ps-view').value, sv = $('#ps-server').value
     return rows.filter(r => {
       if (pv && r.provider_id !== pv) return false
+      if (sv && String(r.tier) !== sv) return false
       if (q && !`${r.countries?.name || ''} ${r.services?.name || ''}`.toLowerCase().includes(q)) return false
       if (v === 'out') return r.stock === 0
       if (v === 'low') return r.stock != null && r.stock > 0 && r.stock <= 10
       if (v === 'mine') return r.price_locked
+      if (v === 'nocost') return r.buy_cost == null
       if (v === 'loss') return r.buy_cost != null && Number(r.sell_price) < Number(r.buy_cost)
       if (v === 'off') return !r.is_active
       return true
@@ -83,8 +94,8 @@ export async function mountPrices(root) {
       return `<div class="card" data-id="${r.id}" style="margin-top:8px;padding:12px;${r.is_active ? '' : 'opacity:.55'}">
         <div style="display:flex;justify-content:space-between;gap:8px;align-items:center">
           <b>${esc(r.countries?.flag_emoji || '')} ${esc(r.countries?.name || '?')} &middot; ${esc(r.services?.name || '?')}</b>
-          <span class="muted" style="font-size:.8rem;white-space:nowrap">Server ${r.tier || 1}</span></div>
-        <div class="muted" style="font-size:.85rem;margin:4px 0">${stock}${cost != null ? ' &middot; cost ' + naira(cost) : ''}${profit != null ? ' &middot; <span style="color:' + (profit < 0 ? '#e5484d' : 'inherit') + '">' + (profit < 0 ? 'loss ' : 'profit ') + naira(Math.abs(profit)) + '</span>' : ''}${r.price_locked ? ' &middot; <span title="Imports will not change this price">your price</span>' : ''}</div>
+          <span class="muted" style="font-size:.8rem;white-space:nowrap">${esc((servers.find(x => x.id === r.tier) || {}).name || 'Server ' + r.tier)}</span></div>
+        <div class="muted" style="font-size:.85rem;margin:4px 0">${stock}${cost != null ? ' &middot; cost ' + naira(cost) : ' &middot; <b style="color:#e5a000">no cost from provider, set your price</b>'}${profit != null ? ' &middot; <span style="color:' + (profit < 0 ? '#e5484d' : 'inherit') + '">' + (profit < 0 ? 'loss ' : 'profit ') + naira(Math.abs(profit)) + '</span>' : ''}${r.price_locked ? ' &middot; <span>your own price</span> <button class="ps-reset btn-secondary" style="padding:2px 8px;font-size:.8rem">Use rule</button>' : ''}</div>
         <div style="display:flex;gap:8px;align-items:center">
           <input class="ps-price mono" type="number" min="0" step="1" value="${esc(r.sell_price)}" style="flex:1" aria-label="Your price" />
           <button class="ps-save btn-secondary">Save</button>
@@ -95,6 +106,19 @@ export async function mountPrices(root) {
   }
 
   root.addEventListener('click', async (e) => {
+    const rs = e.target.closest('.ps-reset')
+    if (rs) {
+      const id = rs.closest('[data-id]').dataset.id
+      rs.disabled = true; rs.textContent = '...'
+      const { error } = await supabase.from('pricing').update({ price_locked: false }).eq('id', id)
+      if (error) { alert('Could not reset: ' + error.message); rs.disabled = false; rs.textContent = 'Use rule'; return }
+      try {
+        const { data: { session } } = await supabase.auth.getSession()
+        const res = await fetch(`${SUPABASE_URL}/functions/v1/set-pricing`, { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` }, body: '{"reprice_only":true}' })
+        if (!res.ok) throw new Error((await res.json()).error || 'failed')
+      } catch (err) { alert('Unlocked, but the new price was not calculated: ' + err.message) }
+      await load(); return
+    }
     const save = e.target.closest('.ps-save')
     if (!save) return
     const card = save.closest('[data-id]'), id = card.dataset.id
@@ -116,7 +140,7 @@ export async function mountPrices(root) {
     const row = rows.find(r => r.id === id); if (row) row.is_active = on.checked
     on.closest('[data-id]').style.opacity = on.checked ? '' : '.55'
   })
-  ;['#ps-q', '#ps-prov', '#ps-view'].forEach(s => $(s).addEventListener('input', () => { shown = PAGE; draw() }))
+  ;['#ps-q', '#ps-prov', '#ps-server', '#ps-view'].forEach(s => $(s).addEventListener('input', () => { shown = PAGE; draw() }))
   $('#ps-more').addEventListener('click', () => { shown += PAGE; draw() })
   $('#ps-refresh').addEventListener('click', async (e) => {
     const b = e.currentTarget; b.disabled = true; b.textContent = 'Checking...'
@@ -132,4 +156,4 @@ export async function mountPrices(root) {
     await load()
   })
   await load()
-      }
+                              }
