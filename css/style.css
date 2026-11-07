@@ -862,3 +862,16 @@ h1, h2, h3, .heading, .btn { font-family: 'Inter', system-ui, -apple-system, 'Se
 /* ===== v12: new logo (no colour filter, so it shows true) ===== */
 html:not(.light) .navbar .logo img, .navbar .logo img { filter: none; border-radius: 10px; }
 .navbar .logo span { font-weight: 800; letter-spacing: -.02em; }
+/* ---- Text must never spill out of cards (all pages) ---- */
+.card, .admin-main, .admin-main td, .admin-main th, .stat-card, .message-bubble, .form-row, details, summary, p, h1, h2, h3, b, span, a, label {
+  overflow-wrap: anywhere;
+  min-width: 0;
+}
+.card, .admin-main { max-width: 100%; }
+.admin-main table { max-width: 100%; }
+input, select, textarea { max-width: 100%; min-width: 0; box-sizing: border-box; }
+
+/* ---- Dropdown lists: always readable, both themes ---- */
+select { color: rgb(var(--fg)); background-color: rgb(var(--surface)); color-scheme: dark; }
+html.light select { color-scheme: light; }
+select option { color: rgb(var(--fg)); background-color: rgb(var(--surface)); }
