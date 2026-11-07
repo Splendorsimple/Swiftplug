@@ -30,6 +30,7 @@ if (session) {
           { key: 'type', label: 'Type', type: 'select', options: ['disposable', 'real'] },
           { key: 'base_url', label: 'Base URL', type: 'text' },
           { key: 'api_key_encrypted', label: 'API Key', type: 'text', mask: true },
+          { key: 'currency', label: 'Provider prices are in', type: 'select', options: ['USD', 'NGN'] },
           { key: 'is_active', label: 'Active', type: 'boolean' }
         ]
       })
@@ -337,4 +338,4 @@ async function renderAnalytics(content) {
       ${cards.map(c => `<div class="card stat-card"><div class="value">${c.value}</div><div class="label">${c.label}</div></div>`).join('')}
     </div>
   `
-}
+                                                             }
