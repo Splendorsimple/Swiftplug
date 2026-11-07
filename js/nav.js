@@ -50,12 +50,10 @@ export async function renderNavbar() {
   el.classList.add('nb')
 
   const { data: { session } } = await supabase.auth.getSession()
-  let profile = null
-  if (session) {
-    const { data } = await supabase.from('profiles').select('*').eq('id', session.user.id).single()
-    profile = data
-  }
-  const isAdmin = profile?.role === 'admin'
+  // Draw the menu right away; the balance and the admin link fill in once the profile arrives (see bottom).
+  const profile = null
+  const isAdmin = false
+  const PENDING = '\u20A6 \u2026'
   const email = session?.user?.email || ''
   const initial = (email[0] || 'U').toUpperCase()
   el.classList.toggle('nb-in', !!session)
@@ -64,7 +62,7 @@ export async function renderNavbar() {
     <div class="nb-hero">
       <div class="nb-who"><span class="nb-av">${esc(initial)}</span><span class="nb-mail">${esc(email)}</span></div>
       <div class="nb-bal-l">Balance</div>
-      <div class="nb-bal mono js-bal" data-v="${esc(fmt(profile?.wallet_balance))}">${esc(fmt(profile?.wallet_balance))}</div>
+      <div class="nb-bal mono js-bal" data-v="${PENDING}">${PENDING}</div>
       <div class="nb-hero-btns">
         <a class="nb-b1" href="dashboard.html?section=wallet">${svg('plus')} Fund</a>
         <a class="nb-b2" href="dashboard.html?section=wallet">${svg('clock')} History</a>
@@ -106,7 +104,7 @@ export async function renderNavbar() {
     </a>
     <div class="nb-right">
       ${session
-        ? `<a class="nb-wallet" href="dashboard.html?section=wallet">${svg('card')}<span class="mono js-bal" data-v="${esc(fmt(profile?.wallet_balance))}">${esc(fmt(profile?.wallet_balance))}</span></a>
+        ? `<a class="nb-wallet" href="dashboard.html?section=wallet">${svg('card')}<span class="mono js-bal" data-v="${PENDING}">${PENDING}</span></a>
            <button class="nb-avatar" id="nb-avatar" aria-label="Open menu">${esc(initial)}</button>`
         : `<a class="nb-signin" href="login.html">Sign in</a>`}
     </div>
@@ -190,4 +188,23 @@ export async function renderNavbar() {
     await supabase.auth.signOut()
     window.location.href = 'index.html'
   })
-        }
+
+  // ---- Profile arrives in the background: balance + admin link ----
+  if (session) {
+    ;(async () => {
+      const { data } = await supabase.from('profiles').select('*').eq('id', session.user.id).single()
+      if (!data) return
+      document.querySelectorAll('.js-bal').forEach(n => { n.dataset.v = fmt(data.wallet_balance) })
+      paintBal()
+      if (data.role === 'admin' && !panel.querySelector('.nb-admin-sec')) {
+        const tmp = document.createElement('div')
+        tmp.innerHTML = section('shield', 'ADMIN', item('admin.html', 'shield', 'Admin dashboard'))
+        const node = tmp.firstElementChild
+        node.classList.add('nb-admin-sec')
+        const help = panel.querySelector('.nb-help')
+        if (help) help.before(node); else panel.querySelector('.nb-scroll').append(node)
+      }
+    })().catch(() => { /* keep the placeholder */ })
+  }
+      }
+          
