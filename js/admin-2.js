@@ -1,0 +1,373 @@
+import { supabase } from './supabaseClient.js'
+import { requireAdmin } from './authGuards.js'
+import { renderNavbar } from './nav.js'
+import { renderAdminTable } from './adminTable.js'
+import { attachCountryAutocomplete } from './countryAutocomplete.js'
+import { fmt } from './currency.js'
+
+// Messages: use the site's toast and confirm sheet (ui.js), or the browser's plain boxes if ui.js is missing.
+const ask = (m, o) => (window.spUI ? window.spUI.confirm(m, o) : Promise.resolve(window.confirm(m)))
+const tell = (m, kind = 'error') => (window.spUI ? window.spUI.toast(m, kind) : window.alert(m))
+
+const esc = (v) => String(v ?? '').replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]))
+
+const session = await requireAdmin()
+if (session) {
+  renderNavbar()
+  const content = document.getElementById('admin-content')
+
+  document.getElementById('admin-nav').addEventListener('click', (e) => {
+    const btn = e.target.closest('button[data-section]')
+    if (!btn) return
+    document.querySelectorAll('#admin-nav button').forEach(b => b.classList.toggle('active', b === btn))
+    renderSection(btn.dataset.section)
+  })
+
+  renderSection('overview')
+
+  function renderSection(section) {
+    if (section === 'providers') {
+      renderAdminTable(content, {
+        table: 'providers', title: 'API Providers',
+        columns: [
+          { key: 'name', label: 'Name', type: 'text' },
+          { key: 'type', label: 'Type', type: 'select', options: ['disposable', 'real'] },
+          { key: 'base_url', label: 'Base URL', type: 'text' },
+          { key: 'api_key_encrypted', label: 'API Key', type: 'text', mask: true },
+          { key: 'currency', label: 'Provider prices are in', type: 'select', options: ['USD', 'NGN'] },
+          { key: 'is_active', label: 'Active', type: 'boolean' }
+        ]
+      })
+    } else if (section === 'services') {
+      renderAdminTable(content, {
+        table: 'services', title: 'Services',
+        columns: [
+          { key: 'name', label: 'Name', type: 'text' },
+          { key: 'icon_url', label: 'Icon URL', type: 'text' },
+          { key: 'is_active', label: 'Active', type: 'boolean' }
+        ]
+      })
+    } else if (section === 'discounts') {
+      renderAdminTable(content, {
+        table: 'discounts', title: 'Bulk Discounts',
+        columns: [
+          { key: 'min_quantity', label: 'Min Quantity', type: 'number' },
+          { key: 'discount_type', label: 'Type', type: 'select', options: ['percentage', 'flat'] },
+          { key: 'discount_value', label: 'Value', type: 'number' },
+          { key: 'applies_to', label: 'Applies To', type: 'select', options: ['disposable', 'real', 'both'] },
+          { key: 'is_active', label: 'Active', type: 'boolean' }
+        ]
+      })
+    } else if (section === 'support') {
+      renderAdminTable(content, {
+        table: 'support_links', title: 'Customer Support',
+        hint: 'These appear on the Support button customers see on every page. For WhatsApp enter the number with country code, no plus or spaces (2348012345678). For Telegram enter @username. For email enter the address. Use Order to decide who is listed first.',
+        columns: [
+          { key: 'label', label: 'Label (e.g. Chat on WhatsApp)', type: 'text' },
+          { key: 'kind', label: 'Type', type: 'select', options: ['whatsapp', 'telegram', 'email', 'phone', 'link'] },
+          { key: 'url', label: 'Number / @username / email / link', type: 'text' },
+          { key: 'note', label: 'Short note (optional)', type: 'text' },
+          { key: 'sort_order', label: 'Order (1 = first)', type: 'number' },
+          { key: 'is_active', label: 'Active', type: 'boolean' }
+        ]
+      })
+    } else if (section === 'pricing') {
+      renderPricing(content)
+    } else if (section === 'users') {
+      renderUsers(content)
+    } else if (section === 'analytics') {
+      renderAnalytics(content)
+    }
+  }
+}
+
+// ================================================================
+// PRICING — needs country autocomplete + service/provider dropdowns
+// ================================================================
+async function renderPricing(content) {
+  let rows = [], services = [], providers = [], form = null, country = null
+
+  async function load() {
+    const { data } = await supabase.from('pricing').select('*, countries(name, flag_emoji), services(name)').order('id', { ascending: false })
+    rows = data || []
+    draw()
+  }
+  const { data: svc } = await supabase.from('services').select('*').eq('is_active', true)
+  const { data: prov } = await supabase.from('providers').select('*').eq('is_active', true)
+  services = svc || []; providers = prov || []
+
+  function startAdd() {
+    form = { number_type: 'disposable', service_id: '', provider_id: '', provider_country: '', provider_product: '', provider_operator: '', buy_cost: '', sell_price: '', plan_duration: '', max_quantity_per_purchase: 10, is_active: true }
+    country = null
+    draw()
+  }
+  function startEdit(row) {
+    form = { ...row, id: row.id, countries: undefined, services: undefined }
+    country = row.countries ? { id: row.country_id, ...row.countries } : null
+    draw()
+  }
+  async function save() {
+    if (!country) { tell('Select a country.'); return }
+    const payload = { ...form, country_id: country.id }
+    if (!payload.service_id) payload.service_id = null
+    if (!payload.provider_id) payload.provider_id = null
+    if (!payload.plan_duration) payload.plan_duration = null
+    if (!payload.provider_country) payload.provider_country = null
+    if (!payload.provider_product) payload.provider_product = null
+    if (!payload.provider_operator) payload.provider_operator = null
+    const isEdit = !!form.id
+    delete payload.id
+
+    const { error } = isEdit ? await supabase.from('pricing').update(payload).eq('id', form.id) : await supabase.from('pricing').insert(payload)
+
+    if (error) {
+      tell(error.message)
+      return
+    }
+    form = null; load()
+  }
+  async function remove(id) {
+    if (!(await ask('Delete this pricing row?', { title: 'Delete price', confirmText: 'Delete', danger: true }))) return
+    await supabase.from('pricing').delete().eq('id', id)
+    load()
+  }
+
+  function draw() {
+    content.innerHTML = `
+      <div class="admin-head">
+        <h2>Countries & Pricing</h2>
+        <button class="pill-btn" id="add-btn">+ Add</button>
+      </div>
+      ${form ? `
+        <div class="card admin-form">
+          <div class="form-row"><label>Country</label>
+            <div style="flex:1"><input id="p-country-input" placeholder="Search country or phone code" autocomplete="off" value="${country ? esc(country.flag_emoji) + ' ' + esc(country.name) : ''}" />
+            <div id="p-country-results" class="card hidden" style="margin-top:4px;max-height:200px;overflow-y:auto;padding:4px"></div></div>
+          </div>
+          <div class="form-row"><label>Number Type</label>
+            <select id="f-number_type">
+              <option value="disposable" ${form.number_type === 'disposable' ? 'selected' : ''}>disposable</option>
+              <option value="real" ${form.number_type === 'real' ? 'selected' : ''}>real</option>
+            </select>
+          </div>
+          <div class="form-row" id="service-row" style="${form.number_type === 'real' ? 'display:none' : ''}"><label>Service</label>
+            <select id="f-service_id"><option value="">--</option>${services.map(s => `<option value="${s.id}" ${form.service_id === s.id ? 'selected' : ''}>${esc(s.name)}</option>`).join('')}</select>
+          </div>
+          <div class="form-row" id="plan-row" style="${form.number_type === 'disposable' ? 'display:none' : ''}"><label>Plan Duration</label>
+            <input id="f-plan_duration" placeholder="e.g. 1month, 3month" value="${esc(form.plan_duration)}" />
+          </div>
+          <div class="form-row"><label>Provider</label>
+            <select id="f-provider_id"><option value="">--</option>${providers.map(p => `<option value="${p.id}" ${form.provider_id === p.id ? 'selected' : ''}>${esc(p.name)}</option>`).join('')}</select>
+          </div>
+          <div class="form-row"><label>Provider country code</label>
+            <input id="f-provider_country" placeholder="provider's country ID (e.g. 1)" value="${esc(form.provider_country)}" />
+          </div>
+          <div class="form-row"><label>Provider service code</label>
+            <input id="f-provider_product" placeholder="provider's service ID (e.g. wa)" value="${esc(form.provider_product)}" />
+          </div>
+          <div class="form-row"><label>Provider pool/operator (optional)</label>
+            <input id="f-provider_operator" placeholder="leave empty unless needed" value="${esc(form.provider_operator)}" />
+          </div>
+          <div class="form-row"><label>Buy Cost (your cost)</label>
+            <input id="f-buy_cost" type="number" value="${esc(form.buy_cost)}" />
+          </div>
+          <div class="form-row"><label>Sell Price (customer pays)</label>
+            <input id="f-sell_price" type="number" value="${esc(form.sell_price)}" />
+          </div>
+          <div class="form-row"><label>Max Qty/Purchase</label>
+            <input id="f-max_quantity_per_purchase" type="number" value="${esc(form.max_quantity_per_purchase)}" />
+          </div>
+          <div class="form-row"><label>Active</label><input id="f-is_active" type="checkbox" ${form.is_active ? 'checked' : ''} /></div>
+          <div class="form-actions">
+            <button id="save-btn" class="btn-secondary" style="background:rgb(var(--accent));color:rgb(var(--accentink))">Save</button>
+            <button id="cancel-btn" class="btn-secondary">Cancel</button>
+          </div>
+        </div>
+      ` : ''}
+      ${rows.length ? `
+      <table>
+        <thead><tr><th>Country</th><th>Type</th><th>Service/Plan</th><th>Sell Price</th><th></th></tr></thead>
+        <tbody>
+          ${rows.map(r => `
+            <tr>
+              <td data-label="Country">${esc(r.countries?.flag_emoji)} ${esc(r.countries?.name)}</td>
+              <td data-label="Type">${esc(r.number_type)}</td>
+              <td data-label="Service / Plan">${esc(r.services?.name || r.plan_duration)}</td>
+              <td data-label="Sell price">${fmt(r.sell_price)}</td>
+              <td class="row-actions"><button class="edit" data-edit="${r.id}">Edit</button><button class="delete" data-del="${r.id}">Delete</button></td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>` : '<div class="empty">No prices yet. Tap <strong>+ Add</strong> to create the first one.</div>'}
+    `
+
+    content.querySelector('#add-btn').addEventListener('click', startAdd)
+    if (form) {
+      content.querySelector('#f-number_type').addEventListener('change', (e) => {
+        form.number_type = e.target.value
+        content.querySelector('#service-row').style.display = e.target.value === 'real' ? 'none' : ''
+        content.querySelector('#plan-row').style.display = e.target.value === 'disposable' ? 'none' : ''
+      })
+      ;['service_id', 'plan_duration', 'provider_id', 'provider_country', 'provider_product', 'provider_operator', 'buy_cost', 'sell_price', 'max_quantity_per_purchase'].forEach(k => {
+        const el = content.querySelector(`#f-${k}`)
+        if (el) el.addEventListener('input', () => form[k] = el.value)
+      })
+      content.querySelector('#f-is_active').addEventListener('change', (e) => form.is_active = e.target.checked)
+      attachCountryAutocomplete(
+        content.querySelector('#p-country-input'), content.querySelector('#p-country-results'),
+        (c) => country = c
+      )
+      content.querySelector('#save-btn').addEventListener('click', save)
+      content.querySelector('#cancel-btn').addEventListener('click', () => { form = null; draw() })
+    }
+    content.querySelectorAll('[data-edit]').forEach(b => b.addEventListener('click', () => startEdit(rows.find(r => String(r.id) === b.dataset.edit))))
+    content.querySelectorAll('[data-del]').forEach(b => b.addEventListener('click', () => remove(b.dataset.del)))
+  }
+
+  load()
+}
+
+// ================================================================
+// USERS — role promotion is the fix for the single-hardcoded-admin-email problem
+// ================================================================
+async function renderUsers(content) {
+  async function load() {
+    const { data } = await supabase
+      .from('profiles')
+      .select('id, email, role, wallet_balance, is_suspended, created_at')
+      .order('created_at', { ascending: false })
+    draw(data || [])
+  }
+  function draw(users) {
+    content.innerHTML = `
+      <div class="admin-head"><h2>Users</h2></div>
+      <p class="muted admin-hint">Admin access is granted here, per user. There is no single fixed admin email. Anyone can be promoted or demoted at any time.</p>
+      ${users.length ? `
+      <table>
+        <thead><tr><th>Email</th><th>Role</th><th>Wallet</th><th>Status</th><th></th></tr></thead>
+        <tbody>
+          ${users.map(u => `
+            <tr>
+              <td data-label="Email">${esc(u.email)}</td>
+              <td data-label="Role">${esc(u.role)}</td>
+              <td data-label="Wallet">${fmt(u.wallet_balance)}</td>
+              <td data-label="Status">${u.is_suspended ? '<span class="badge off">Suspended</span>' : '<span class="badge on">Active</span>'}</td>
+              <td class="row-actions">
+                <button class="edit" data-role="${u.id}" data-current="${esc(u.role)}">${u.role === 'admin' ? 'Remove admin' : 'Make admin'}</button>
+                <button class="delete" data-suspend="${u.id}" data-current="${u.is_suspended}">${u.is_suspended ? 'Unsuspend' : 'Suspend'}</button>
+              </td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>` : '<div class="empty">No users yet.</div>'}
+    `
+    content.querySelectorAll('[data-role]').forEach(b => b.addEventListener('click', async () => {
+      const newRole = b.dataset.current === 'admin' ? 'user' : 'admin'
+      if (!(await ask(`Set role to "${newRole}" for this user?`, { title: 'Change role', confirmText: 'Change role' }))) return
+      await supabase.from('profiles').update({ role: newRole }).eq('id', b.dataset.role)
+      load()
+    }))
+    content.querySelectorAll('[data-suspend]').forEach(b => b.addEventListener('click', async () => {
+      await supabase.from('profiles').update({ is_suspended: b.dataset.current !== 'true' }).eq('id', b.dataset.suspend)
+      load()
+    }))
+  }
+  load()
+}
+
+// ================================================================
+// ANALYTICS
+// ================================================================
+async function renderAnalytics(content) {
+  content.innerHTML = '<p class="muted">Loading...</p>'
+  const sevenDaysAgo = new Date(Date.now() - 7 * 86_400_000).toISOString()
+  const todayStart = new Date(new Date().setHours(0, 0, 0, 0)).toISOString()
+
+  const [
+    { count: totalUsers },
+    { count: newUsersWeek },
+    { count: newUsersToday },
+    { count: disposableSold },
+    { count: realSold },
+    { count: activeReal },
+    { count: suspendedUsers },
+    { data: pricingRows },
+    { data: walletRows },
+    { data: smmRows }
+  ] = await Promise.all([
+    supabase.from('profiles').select('*', { count: 'exact', head: true }),
+    supabase.from('profiles').select('*', { count: 'exact', head: true }).gte('created_at', sevenDaysAgo),
+    supabase.from('profiles').select('*', { count: 'exact', head: true }).gte('created_at', todayStart),
+    supabase.from('numbers').select('*', { count: 'exact', head: true }).eq('number_type', 'disposable'),
+    supabase.from('numbers').select('*', { count: 'exact', head: true }).eq('number_type', 'real'),
+    supabase.from('numbers').select('*', { count: 'exact', head: true }).eq('number_type', 'real').eq('status', 'active'),
+    supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('is_suspended', true),
+    supabase.from('numbers').select('status, price_paid, pricing(sell_price, buy_cost)'),
+    supabase.from('profiles').select('wallet_balance'),
+    supabase.from('smm_orders').select('price, refunded, status')
+  ])
+
+  // Numbers revenue = what customers actually paid (cancelled and released numbers were refunded, so they are left out).
+  // Profit = paid minus your cost, counted only for rows where you recorded a cost (imported prices have one).
+  let revenue = 0, profit = 0, costedRows = 0, totalRows = 0
+  for (const r of pricingRows || []) {
+    if (['cancelled', 'released'].includes(r.status)) continue
+    const paid = Number(r.price_paid ?? r.pricing?.sell_price ?? 0)
+    revenue += paid; totalRows++
+    const cost = r.pricing?.buy_cost
+    if (cost != null && cost !== '') { profit += paid - Number(cost); costedRows++ }
+  }
+  // Social Boost revenue = order price minus anything refunded (failed orders were refunded in full).
+  const smmRevenue = (smmRows || []).reduce((sum, o) => sum + Math.max(0, Number(o.price || 0) - Number(o.refunded || 0)), 0)
+  // Money sitting in user wallets, not yet spent. This is a liability you owe users,
+  // worth watching so you always know you can cover it.
+  const walletLiability = (walletRows || []).reduce((sum, r) => sum + Number(r.wallet_balance || 0), 0)
+
+  // Last 7 days of revenue, for the chart (numbers + Social Boost, refunds left out).
+  const dayKey = (d) => { const x = new Date(d); return x.getFullYear() + '-' + x.getMonth() + '-' + x.getDate() }
+  const days = Array.from({ length: 7 }, (_, i) => { const d = new Date(); d.setHours(0, 0, 0, 0); d.setDate(d.getDate() - (6 - i)); return { d, k: dayKey(d), nums: 0, smm: 0 } })
+  const byKey = new Map(days.map(x => [x.k, x]))
+  const [{ data: wkNums }, { data: wkSmm }] = await Promise.all([
+    supabase.from('numbers').select('created_at, status, price_paid, pricing(sell_price)').gte('created_at', new Date(days[0].d).toISOString()),
+    supabase.from('smm_orders').select('created_at, price, refunded').gte('created_at', new Date(days[0].d).toISOString())
+  ])
+  for (const r of wkNums || []) { if (['cancelled', 'released'].includes(r.status)) continue; const x = byKey.get(dayKey(r.created_at)); if (x) x.nums += Number(r.price_paid ?? r.pricing?.sell_price ?? 0) }
+  for (const o of wkSmm || []) { const x = byKey.get(dayKey(o.created_at)); if (x) x.smm += Math.max(0, Number(o.price || 0) - Number(o.refunded || 0)) }
+  const maxDay = Math.max(1, ...days.map(x => x.nums + x.smm))
+  const weekTotal = days.reduce((t, x) => t + x.nums + x.smm, 0)
+  const chart = `
+    <div class="card an-chart">
+      <div class="an-chart-head"><b>Revenue, last 7 days</b><span class="mono">${fmt(weekTotal)}</span></div>
+      <div class="an-bars">${days.map(x => {
+        const tot = x.nums + x.smm
+        return `<div class="an-col" title="${x.d.toDateString()}: ${fmt(tot)}">
+          <div class="an-val mono">${tot ? (tot >= 1000 ? Math.round(tot / 100) / 10 + 'k' : tot) : ''}</div>
+          <div class="an-bar"><span class="an-s" style="height:${(x.smm / maxDay) * 100}%"></span><span class="an-n" style="height:${(x.nums / maxDay) * 100}%"></span></div>
+          <div class="an-day">${x.d.toLocaleDateString('en-NG', { weekday: 'short' })}</div></div>`
+      }).join('')}</div>
+      <div class="an-legend"><span><i class="an-n"></i>Numbers</span><span><i class="an-s"></i>Social Boost</span></div>
+    </div>`
+
+  const group = (title, list) => `<h3 class="an-h">${title}</h3><div class="stat-grid">${list.map(c => `<div class="card stat-card"><div class="value">${c.value}</div><div class="label">${c.label}</div></div>`).join('')}</div>`
+  content.innerHTML = `
+    <div class="admin-head"><h2>Analytics</h2></div>
+    ${chart}
+    ${group('Money', [
+      { label: 'Numbers revenue', value: fmt(revenue) },
+      { label: costedRows === totalRows ? 'Estimated profit (numbers)' : `Estimated profit (${costedRows} of ${totalRows} sales have a cost)`, value: fmt(profit) },
+      { label: 'Social Boost revenue', value: fmt(smmRevenue) },
+      { label: 'Wallet balances held (liability)', value: fmt(walletLiability) }
+    ])}
+    ${group('Users', [
+      { label: 'Total users', value: totalUsers ?? 0 },
+      { label: 'New users (7 days)', value: newUsersWeek ?? 0 },
+      { label: 'New users (today)', value: newUsersToday ?? 0 },
+      { label: 'Suspended users', value: suspendedUsers ?? 0 }
+    ])}
+    ${group('Numbers', [
+      { label: 'Disposable numbers sold', value: disposableSold ?? 0 },
+      { label: 'Real numbers sold', value: realSold ?? 0 },
+      { label: 'Active real-number subscriptions', value: activeReal ?? 0 }
+    ])}
+  `
+}
