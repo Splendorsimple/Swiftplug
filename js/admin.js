@@ -5,6 +5,10 @@ import { renderAdminTable } from './adminTable.js'
 import { attachCountryAutocomplete } from './countryAutocomplete.js'
 import { fmt } from './currency.js'
 
+// Messages: use the site's toast and confirm sheet (ui.js), or the browser's plain boxes if ui.js is missing.
+const ask = (m, o) => (window.spUI ? window.spUI.confirm(m, o) : Promise.resolve(window.confirm(m)))
+const tell = (m, kind = 'error') => (window.spUI ? window.spUI.toast(m, kind) : window.alert(m))
+
 const esc = (v) => String(v ?? '').replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]))
 
 const session = await requireAdmin()
@@ -103,7 +107,7 @@ async function renderPricing(content) {
     draw()
   }
   async function save() {
-    if (!country) { alert('Select a country.'); return }
+    if (!country) { tell('Select a country.'); return }
     const payload = { ...form, country_id: country.id }
     if (!payload.service_id) payload.service_id = null
     if (!payload.provider_id) payload.provider_id = null
@@ -117,13 +121,13 @@ async function renderPricing(content) {
     const { error } = isEdit ? await supabase.from('pricing').update(payload).eq('id', form.id) : await supabase.from('pricing').insert(payload)
 
     if (error) {
-      alert(error.message)
+      tell(error.message)
       return
     }
     form = null; load()
   }
   async function remove(id) {
-    if (!confirm('Delete this pricing row?')) return
+    if (!(await ask('Delete this pricing row?', { title: 'Delete price', confirmText: 'Delete', danger: true }))) return
     await supabase.from('pricing').delete().eq('id', id)
     load()
   }
@@ -259,7 +263,7 @@ async function renderUsers(content) {
     `
     content.querySelectorAll('[data-role]').forEach(b => b.addEventListener('click', async () => {
       const newRole = b.dataset.current === 'admin' ? 'user' : 'admin'
-      if (!confirm(`Set role to "${newRole}" for this user?`)) return
+      if (!(await ask(`Set role to "${newRole}" for this user?`, { title: 'Change role', confirmText: 'Change role' }))) return
       await supabase.from('profiles').update({ role: newRole }).eq('id', b.dataset.role)
       load()
     }))
@@ -338,4 +342,4 @@ async function renderAnalytics(content) {
       ${cards.map(c => `<div class="card stat-card"><div class="value">${c.value}</div><div class="label">${c.label}</div></div>`).join('')}
     </div>
   `
-                                                             }
+}
