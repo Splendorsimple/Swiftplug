@@ -49,33 +49,49 @@
 
       <!-- Disposable flow -->
       <div id="disposable-flow">
-        <div id="service-catalog">
-          <input id="service-search" placeholder="Find a service..." />
-          <div class="service-grid" id="service-grid"></div>
-        </div>
-        <div id="disposable-purchase-form" class="hidden" style="margin-top:16px">
-          <button class="link" id="back-to-services" style="background:none;border:none;padding:0;margin-bottom:12px">← Back to services</button>
-          <h3 id="chosen-service-name"></h3>
-          <div class="field">
-            <select id="dcountry-select"><option value="">Select a country</option></select>
+        <div class="card bn-card" id="buy-card">
+          <div class="bn-head">
+            <span class="bn-title"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/><path d="M2 3h3l2.7 12.4a1 1 0 0 0 1 .8h9.2a1 1 0 0 0 1-.8L21 7H6"/></svg>Buy a number</span>
+            <button type="button" class="bn-icon-btn" id="bn-reset" aria-label="Start over"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.3-5.7M20 4v5h-5"/></svg></button>
           </div>
+          <p class="bn-pending hidden" id="bn-pending"></p>
+          <div class="bn-step"><span class="bn-num">1</span><span>Select country</span></div>
+          <div class="bn-field" id="bn-country"></div>
+          <button type="button" class="bn-clear hidden" id="bn-clear-country">&times; Clear country</button>
+          <div class="bn-step"><span class="bn-num">2</span><span>Select service</span></div>
+          <div class="bn-field" id="bn-service"></div>
+          <button type="button" class="bn-clear hidden" id="bn-clear-service">&times; Clear service</button>
+          <div id="bn-server-wrap" class="hidden">
+            <div class="bn-step"><span class="bn-num">3</span><span>Choose a server</span></div>
+            <div class="bn-field" id="bn-server"></div>
+          </div>
+          <p class="bn-note hidden" id="bn-none">No numbers are available for this right now. Try another country or service.</p>
           <div id="dqty-wrap" class="hidden">
-            <div id="dtiers" class="tier-row hidden"></div>
-            <div class="field" style="display:flex;align-items:center;gap:10px">
+            <div class="field" style="display:flex;align-items:center;gap:10px;margin-top:16px">
               <label style="margin:0">Quantity</label>
               <div class="qty-control" style="width:120px"><button id="dqty-minus">−</button><span id="dqty-value" class="mono">1</span><button id="dqty-plus">+</button></div>
               <span class="muted mono" id="dmax-note" style="font-size:.8rem"></span>
             </div>
-            <div class="card" style="margin:12px 0">
+            <div class="bn-totals">
               <div style="display:flex;justify-content:space-between;font-size:.9rem"><span class="muted">Subtotal</span><span id="dsubtotal" class="mono">₦0</span></div>
               <div id="ddiscount-row" class="hidden" style="display:flex;justify-content:space-between;font-size:.9rem;color:rgb(var(--highlight))"><span>Discount</span><span id="ddiscount-amt" class="mono"></span></div>
               <div style="display:flex;justify-content:space-between;font-weight:700;margin-top:8px;padding-top:8px;border-top:1px solid rgba(var(--line),.1)"><span>Total</span><span id="dtotal" class="mono">₦0</span></div>
             </div>
             <p class="error-text hidden" id="derror"></p>
-            <button class="btn-primary" id="dbuy-btn">Buy</button>
+            <button class="btn-primary" id="dbuy-btn">Buy number</button>
           </div>
+          <p class="bn-hint" id="bn-hint">No number available or price too high? Try another server.
+            <button type="button" class="link hidden" id="bn-another">Choose another server</button></p>
         </div>
-        <div id="dresult" style="margin-top:16px;display:grid;gap:12px"></div>
+
+        <div class="card bn-card" style="margin-top:16px" id="orders-card">
+          <div class="bn-head">
+            <span class="bn-title"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z"/></svg>Active orders</span>
+            <button type="button" class="bn-icon-btn" id="orders-refresh" aria-label="Refresh orders"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.3-5.7M20 4v5h-5"/></svg></button>
+          </div>
+          <div id="orders-list" style="display:grid;gap:12px"></div>
+          <p class="muted" id="orders-empty" style="margin:0">No pending orders. Past orders are in your <button type="button" class="link" id="to-history" style="background:none;border:none;padding:0;font:inherit;font-weight:700">History</button>.</p>
+        </div>
       </div>
 
       <!-- Real numbers flow -->
@@ -125,4 +141,5 @@
 
 <script type="module" src="js/dashboard.js"></script>
 </body>
-</html>
+  </html>
+  
