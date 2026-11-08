@@ -96,11 +96,13 @@
 
       <!-- Real numbers flow -->
       <div id="real-flow" class="hidden">
-        <div class="field">
-          <input id="rcountry-input" placeholder="Search country or phone code (e.g. Nigeria or +234)" autocomplete="off" />
-          <div id="rcountry-results" class="card hidden" style="position:relative;margin-top:4px;padding:4px;max-height:220px;overflow-y:auto"></div>
+        <div class="bn-step"><span class="bn-num">1</span><span>Select country</span></div>
+        <div class="bn-field" id="rn-country"></div>
+        <div id="rn-plan-wrap" class="hidden">
+          <div class="bn-step"><span class="bn-num">2</span><span>Choose a plan</span></div>
+          <div class="bn-field" id="rn-plan"></div>
         </div>
-        <div id="rplans" class="card-grid" style="margin-top:12px"></div>
+        <p class="muted hidden" id="rn-none" style="margin:12px 0 0">No longer-term plans for this country yet.</p>
         <div id="rqty-wrap" class="hidden" style="margin-top:12px">
           <div class="field" style="display:flex;align-items:center;gap:10px">
             <label style="margin:0">Quantity</label>
@@ -141,5 +143,4 @@
 
 <script type="module" src="js/dashboard.js"></script>
 </body>
-  </html>
-  
+</html>
