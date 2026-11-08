@@ -1,5 +1,9 @@
 import { supabase } from './supabaseClient.js'
 
+// Messages: use the site's toast and confirm sheet (ui.js), or the browser's plain boxes if ui.js is missing.
+const ask = (m, o) => (window.spUI ? window.spUI.confirm(m, o) : Promise.resolve(window.confirm(m)))
+const tell = (m, kind = 'error') => (window.spUI ? window.spUI.toast(m, kind) : window.alert(m))
+
 // Generic CRUD renderer for simple admin tables (providers, services, discounts, support links).
 // This is what makes "customize everything from admin" possible without a bespoke
 // page per data type. containerEl gets fully replaced with a form + table.
@@ -31,15 +35,15 @@ export function renderAdminTable(containerEl, { table, title, columns, hint }) {
     const payload = { ...form }
     delete payload.id; delete payload.created_at
     const { error } = adding ? await supabase.from(table).insert(payload) : await supabase.from(table).update(payload).eq('id', editingId)
-    if (error) { alert(error.message); return }
+    if (error) { tell(error.message); return }
     adding = false; editingId = null
     load()
   }
 
   async function remove(id) {
-    if (!confirm('Delete this row?')) return
+    if (!(await ask('Delete this row?', { title: 'Delete', confirmText: 'Delete', danger: true }))) return
     const { error } = await supabase.from(table).delete().eq('id', id)
-    if (error) alert(error.message); else load()
+    if (error) tell(error.message); else load()
   }
 
   function fieldHtml(col) {
@@ -104,7 +108,7 @@ export function renderAdminTable(containerEl, { table, title, columns, hint }) {
       chk.disabled = true
       const { error } = await supabase.from(table).update({ [key]: want }).eq('id', id)
       chk.disabled = false
-      if (error) { chk.checked = !want; alert(error.message); return }
+      if (error) { chk.checked = !want; tell(error.message); return }
       const row = rows.find(r => String(r.id) === id); if (row) row[key] = want
     }))
     containerEl.querySelectorAll('[data-edit]').forEach(b => b.addEventListener('click', () => startEdit(rows.find(r => String(r.id) === b.dataset.edit))))
