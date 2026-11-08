@@ -4,6 +4,10 @@ import { renderNavbar } from './nav.js'
 import { requireAuth } from './authGuards.js'
 import { fmt } from './currency.js'
 
+// Messages: use the site's toast and confirm sheet (ui.js), or the browser's plain boxes if ui.js is missing.
+const ask = (m, o) => (window.spUI ? window.spUI.confirm(m, o) : Promise.resolve(window.confirm(m)))
+const tell = (m, kind = 'error') => (window.spUI ? window.spUI.toast(m, kind) : window.alert(m))
+
 renderNavbar()
 const session = await requireAuth()
 
@@ -114,7 +118,7 @@ $('sb-buy').addEventListener('click', async (e) => {
   if (!current) return say('Choose a service first.', true)
   if (!link) return say('Paste your link or username.', true)
   if (qty < current.min_qty || qty > current.max_qty) return say(`Quantity must be between ${current.min_qty} and ${current.max_qty}.`, true)
-  if (!confirm(`Order ${qty.toLocaleString()} for ${fmt(total())}?\n\n${current.name}\n${link}`)) return
+  if (!(await ask(`Order ${qty.toLocaleString()} for ${fmt(total())}?\n\n${current.name}\n${link}`, { title: 'Place this order?', confirmText: 'Place order' }))) return
   btn.disabled = true; btn.textContent = 'Placing order...'
   try {
     await callFn('smm-order', { service_id: current.id, link, quantity: qty })
@@ -130,4 +134,3 @@ $('sb-buy').addEventListener('click', async (e) => {
 await loadCatalog()
 await loadOrders()
 refreshOrders()
-                                
