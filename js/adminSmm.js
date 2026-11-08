@@ -39,44 +39,48 @@ async function render() {
     <div class="admin-head"><h2>Social Boost</h2></div>
     <p class="muted admin-hint">Add any SMM panel that offers the standard API (it gives you an API URL and a key). You can add several and switch whenever you like. Your prices are yours: edit them below and imports will never overwrite them.</p>
 
-    <h3>Providers</h3>
+    <div class="sb-sec"><h3>Providers</h3></div>
     <div id="smm-provs">${provs.length ? provs.map(p => `
-      <div class="card" id="prov-${p.id}" style="margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
-        <div><b>${esc(p.name)}</b><div class="muted" style="font-size:.8rem;word-break:break-all">${esc(p.api_url)}</div></div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <div class="card sb-prov" id="prov-${p.id}">
+        <div class="sb-prov-top">
+          <div style="min-width:0"><b>${esc(p.name)}</b><div class="sb-url">${esc(p.api_url)}</div></div>
+          <span class="sb-pill ${p.is_active ? 'on' : ''}">${p.is_active ? 'On' : 'Off'}</span>
+        </div>
+        <div class="sb-acts">
           <button class="btn-secondary" data-bal="${p.id}">Check balance</button>
           <button class="btn-secondary" data-tog="${p.id}" data-on="${p.is_active}">${p.is_active ? 'Turn off' : 'Turn on'}</button>
           <button class="btn-secondary" data-edit="${p.id}">Edit</button>
-          <button class="btn-secondary" data-del="${p.id}">Delete</button>
+          <button class="btn-secondary" data-del="${p.id}" style="color:#e5484d">Delete</button>
         </div>
-      </div>`).join('') : '<p class="muted">No providers yet. Add one below.</p>'}</div>
+      </div>`).join('') : '<div class="card" style="padding:14px"><b>No providers yet.</b> <span class="muted">Add one below.</span></div>'}</div>
 
-    <div class="card admin-form">
+    <details class="card sb-fold"${provs.length ? '' : ' open'}><summary>Add a provider</summary><div class="sb-body">
       <div class="form-row"><label>Name</label><input id="smm-name" placeholder="e.g. My panel" /></div>
       <div class="form-row"><label>API URL</label><input id="smm-url" placeholder="https://example.com/api/v2" /></div>
       <div class="form-row"><label>API key</label><input id="smm-key" type="password" autocomplete="off" placeholder="Paste the key from the provider" /></div>
       <div class="form-actions"><button id="smm-add" class="btn-secondary" style="background:rgb(var(--accent));color:rgb(var(--accentink))">Add provider</button></div>
       <p class="error-text hidden" id="smm-err"></p>
-    </div>
+    </div></details>
 
-    <h3>Import services</h3>
-    <p class="muted admin-hint">Tip: import one platform at a time. Type a word like "instagram followers" in Filter, tap Preview, then Apply.</p>
-    <div class="card admin-form">
+    <details class="card sb-fold"><summary>Import services from a provider</summary><div class="sb-body">
+      <p class="muted admin-hint">Tip: import one platform at a time. Type a word like "instagram followers" in Filter, tap Preview, then Apply.</p>
       <div class="form-row"><label>Provider</label><select id="imp-p">${provs.map(p => `<option value="${p.id}">${esc(p.name)}</option>`).join('')}</select></div>
       <div class="form-row"><label>Filter</label><input id="imp-f" placeholder="e.g. instagram followers" value="${esc(store.get('f', ''))}" /></div>
-      <div class="form-row"><label>Markup %</label><input id="imp-m" type="number" value="${esc(store.get('m', '60'))}" /></div>
-      <div class="form-row"><label>Naira per 1 provider unit</label><input id="imp-r" type="number" placeholder="e.g. 1500" value="${esc(store.get('r', ''))}" /></div>
-      <div class="form-row"><label>Round up to nearest</label><input id="imp-o" type="number" value="${esc(store.get('o', '10'))}" /></div>
-      <div class="form-row"><label>Max services to import</label><input id="imp-l" type="number" value="${esc(store.get('l', '40'))}" /></div>
+      <div class="sb-grid">
+        <div class="form-row"><label>Markup %</label><input id="imp-m" type="number" inputmode="decimal" value="${esc(store.get('m', '60'))}" /></div>
+        <div class="form-row"><label>Round up to</label><input id="imp-o" type="number" inputmode="numeric" value="${esc(store.get('o', '10'))}" /></div>
+        <div class="form-row"><label>Naira per provider unit</label><input id="imp-r" type="number" inputmode="decimal" placeholder="e.g. 1500" value="${esc(store.get('r', ''))}" /></div>
+        <div class="form-row"><label>Max to import</label><input id="imp-l" type="number" inputmode="numeric" value="${esc(store.get('l', '40'))}" /></div>
+      </div>
       <div class="form-actions">
         <button id="imp-prev" class="btn-secondary" style="background:rgb(var(--accent));color:rgb(var(--accentink))">Preview</button>
         <button id="imp-apply" class="btn-secondary" disabled>Apply import</button>
       </div>
       <p class="error-text hidden" id="imp-err"></p>
-    </div>
-    <div id="imp-out"></div>
+      <div id="imp-out"></div>
+    </div></details>
 
-    <h3>Your services and prices</h3>
+    <div class="sb-sec"><h3>Your services and prices</h3></div>
     <div class="form-row" style="margin-bottom:10px"><input id="svc-q" placeholder="Search your services..." /></div>
     <div id="svc-list"></div>`
 
@@ -100,8 +104,7 @@ async function render() {
   content.querySelectorAll('[data-edit]').forEach(b => b.addEventListener('click', () => {
     const p = provs.find(x => x.id === b.dataset.edit)
     const card = content.querySelector('#prov-' + p.id)
-    card.style.display = 'block'
-    card.innerHTML = `
+        card.innerHTML = `
       <div class="admin-form" style="margin:0">
         <div class="form-row"><label>Name</label><input data-f="name" value="${esc(p.name)}" /></div>
         <div class="form-row"><label>API URL</label><input data-f="url" value="${esc(p.api_url)}" /></div>
@@ -164,24 +167,25 @@ async function render() {
     const { data } = await query
     const rows = data || []
     $('#svc-list').innerHTML = rows.length ? rows.map(s => `
-      <div class="card" style="margin-bottom:10px">
-        <div style="display:flex;justify-content:space-between;gap:10px"><b style="font-size:.92rem">${esc(s.name)}</b><span class="muted" style="font-size:.78rem;flex-shrink:0">${esc(s.platform)}</span></div>
-        <div class="muted" style="font-size:.8rem;margin:4px 0 8px">Provider cost ${s.cost_per_1000} per 1000 · min ${s.min_qty}, max ${s.max_qty}${s.price_locked ? ' · your price is locked' : ''}</div>
-        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-          <label style="margin:0;font-size:.75rem">Your price per 1000 (₦)</label>
-          <input type="number" value="${s.sell_per_1000}" data-sell="${s.id}" style="width:120px" />
-          <button class="btn-secondary" data-act="${s.id}" data-on="${s.is_active}">${s.is_active ? 'Visible' : 'Hidden'}</button>
+      <div class="card sb-svc">
+        <div class="sb-svc-top"><b style="font-size:.92rem">${esc(s.name)}</b><span class="sb-plat">${esc(s.platform)}</span></div>
+        <div class="sb-meta">Cost ${s.cost_per_1000} per 1000 · min ${s.min_qty}, max ${s.max_qty}${s.price_locked ? ' · your price is locked' : ''}</div>
+        <div class="sb-price">
+          <div class="pf"><label style="margin:0;font-size:.75rem">Your price per 1000 (₦)</label><input type="number" inputmode="decimal" value="${s.sell_per_1000}" data-sell="${s.id}" /></div>
+          <label class="sb-sw"><input type="checkbox" data-act="${s.id}" ${s.is_active ? 'checked' : ''} /> Visible</label>
         </div>
-      </div>`).join('') : '<p class="muted">Nothing here yet. Import some services above.</p>'
+      </div>`).join('') : '<div class="card" style="padding:14px"><b>Nothing here yet.</b> <span class="muted">Import some services above.</span></div>'
     $('#svc-list').querySelectorAll('[data-sell]').forEach(i => i.addEventListener('change', async () => {
       const { error } = await supabase.from('smm_services').update({ sell_per_1000: Number(i.value) }).eq('id', i.dataset.sell)
       i.style.outline = error ? '2px solid #ef4444' : '2px solid #22c55e'
       setTimeout(() => { i.style.outline = '' }, 1200)
     }))
-    $('#svc-list').querySelectorAll('[data-act]').forEach(b => b.addEventListener('click', async () => {
-      await supabase.from('smm_services').update({ is_active: b.dataset.on !== 'true' }).eq('id', b.dataset.act); loadServices()
+    $('#svc-list').querySelectorAll('[data-act]').forEach(b => b.addEventListener('change', async () => {
+      const { error } = await supabase.from('smm_services').update({ is_active: b.checked }).eq('id', b.dataset.act)
+      if (error) { b.checked = !b.checked; tell('Could not change that: ' + error.message) }
     }))
   }
   $('#svc-q').addEventListener('input', () => { clearTimeout(window.__smmT); window.__smmT = setTimeout(loadServices, 300) })
   loadServices()
-}
+  }
+      
