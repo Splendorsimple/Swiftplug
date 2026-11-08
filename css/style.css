@@ -979,3 +979,5 @@ html:not(.light) .bn-row .bn-right { color: rgb(var(--accent)); }
 .number-card .head { flex-wrap: wrap; row-gap: 8px; }
 .number-card .head > .mono:first-child { flex: 1 1 100%; font-size: 1.15rem; letter-spacing: .02em; white-space: nowrap; }
 #dqty-wrap label { white-space: nowrap; flex-shrink: 0; }
+/* keeps page content clear of the bottom bar and the support button */
+body.tb-on { padding-bottom: calc(150px + env(safe-area-inset-bottom)); }
