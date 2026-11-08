@@ -875,3 +875,38 @@ input, select, textarea { max-width: 100%; min-width: 0; box-sizing: border-box;
 select { color: rgb(var(--fg)); background-color: rgb(var(--surface)); color-scheme: dark; }
 html.light select { color-scheme: light; }
 select option { color: rgb(var(--fg)); background-color: rgb(var(--surface)); }
+/* ================= Toggle switches (replace every tick-box except the signup consent) ================= */
+input[type="checkbox"]:not(#agree) {
+  -webkit-appearance: none; appearance: none;
+  position: relative; flex-shrink: 0; cursor: pointer;
+  width: 46px; height: 28px; min-width: 46px; padding: 0; margin: 0;
+  border: 0; border-radius: 999px;
+  background: rgba(var(--line), .22);
+  box-shadow: inset 0 0 0 1px rgba(var(--line), .08);
+  transition: background .2s ease, box-shadow .2s ease;
+}
+input[type="checkbox"]:not(#agree)::after {
+  content: ""; position: absolute; top: 3px; left: 3px;
+  width: 22px; height: 22px; border-radius: 50%;
+  background: #fff; box-shadow: 0 1px 3px rgba(0, 0, 0, .35);
+  transition: transform .2s ease;
+}
+input[type="checkbox"]:not(#agree):checked { background: rgb(var(--accent)); box-shadow: none; }
+input[type="checkbox"]:not(#agree):checked::after { transform: translateX(18px); }
+input[type="checkbox"]:not(#agree):focus-visible { outline: 2px solid rgb(var(--accent)); outline-offset: 3px; }
+input[type="checkbox"]:not(#agree):disabled { opacity: .5; cursor: not-allowed; }
+/* switch + its words sit on one tidy line */
+label:has(input[type="checkbox"]:not(#agree)) { display: flex; align-items: center; gap: 12px; cursor: pointer; }
+.admin-form .form-row input[type="checkbox"]:not(#agree) { align-self: flex-start; }
+td input[type="checkbox"]:not(#agree) { vertical-align: middle; }
+
+/* ================= Small polish ================= */
+.wallet-summary { margin-bottom: 16px; }
+@media (max-width: 719px) {
+  /* fade on the right edge of the admin tab row hints that it scrolls */
+  .admin-sidebar { -webkit-mask-image: linear-gradient(90deg, #000 88%, transparent); mask-image: linear-gradient(90deg, #000 88%, transparent); padding-right: 24px; }
+}
+
+.ps-reset { min-height: 0; padding: 3px 10px; font-size: .78rem; border-radius: 999px; vertical-align: middle; }
+
+.card .form-row + .form-row { margin-top: 14px; }
