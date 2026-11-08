@@ -26,17 +26,17 @@
   <div id="signup-form-wrap">
     <h1 style="font-size:1.6rem">Create your account</h1>
     <form id="signup-form">
-      <div class="field"><input type="email" id="email" autocomplete="email" inputmode="email" autocapitalize="none" placeholder="Email" required /></div>
-      <div class="field"><input type="password" id="password" autocomplete="new-password" placeholder="Password (min 6 characters)" minlength="6" required /></div>
-      <div class="field" style="display:flex;gap:8px;align-items:flex-start">
-        <input type="checkbox" id="agree" style="width:auto;margin-top:3px" required />
-        <label style="margin:0" for="agree">I agree to the <a href="terms.html" class="link">Terms of Service</a> and acceptable use policy.</label>
+      <div class="field"><label for="email">Email</label><input type="email" id="email" autocomplete="email" inputmode="email" autocapitalize="none" placeholder="you@example.com" required /></div>
+      <div class="field"><label for="password">Password</label><div class="pw-wrap"><input type="password" id="password" autocomplete="new-password" placeholder="At least 6 characters" minlength="6" required /><button type="button" class="pw-eye" aria-label="Show password" data-for="password"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button></div></div>
+      <div class="field consent">
+        <input type="checkbox" id="agree" required />
+        <label for="agree">I agree to the <a href="terms.html" class="link">Terms of Service</a> and acceptable use policy.</label>
       </div>
       <p class="error-text hidden" id="signup-error"></p>
       <button class="btn-primary" type="submit" id="signup-btn">Create account</button>
     </form>
     <p class="muted" style="text-align:center;margin:16px 0">or</p>
-    <button class="btn-outline" id="google-btn">Continue with Google</button>
+    <button class="btn-outline google-btn" id="google-btn" type="button"><svg class="g-logo" viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.8 2.4 30.3 0 24 0 14.6 0 6.5 5.4 2.6 13.2l7.9 6.1C12.4 13.6 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.6 3-2.3 5.5-4.8 7.2l7.6 5.9c4.4-4.1 7-10.1 7-17.6z"/><path fill="#FBBC05" d="M10.5 28.7A14.5 14.5 0 0 1 9.5 24c0-1.6.3-3.2.8-4.7l-7.9-6.1A24 24 0 0 0 0 24c0 3.9.9 7.5 2.6 10.8z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.6-5.9c-2.1 1.4-4.9 2.3-8.3 2.3-6.3 0-11.6-4.1-13.5-9.8l-7.9 6.1C6.5 42.6 14.6 48 24 48z"/></svg><span>Continue with Google</span></button>
     <p style="text-align:center;margin-top:20px" class="muted">
       Already have an account? <a href="login.html" class="link">Sign in</a>
     </p>
@@ -47,5 +47,6 @@
   </div>
 </main>
 <script type="module" src="js/signup.js"></script>
+<script type="module" src="js/authUi.js"></script>
 </body>
 </html>
