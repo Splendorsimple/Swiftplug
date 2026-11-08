@@ -1,6 +1,10 @@
 import { supabase } from './supabaseClient.js'
 import { SUPABASE_URL } from './config.js'
 
+// Messages: use the site's toast and confirm sheet (ui.js), or the browser's plain boxes if ui.js is missing.
+const ask = (m, o) => (window.spUI ? window.spUI.confirm(m, o) : Promise.resolve(window.confirm(m)))
+const tell = (m, kind = 'error') => (window.spUI ? window.spUI.toast(m, kind) : window.alert(m))
+
 // Text from SMS senders is untrusted: always escape before putting it in the page.
 const esc = (v) => String(v ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]))
 
@@ -60,7 +64,7 @@ export function createNumberCard(number, onExpired, opts = {}) {
   el.querySelector('[data-copy-number]').addEventListener('click', (e) => copyText(number.phone_number, e.currentTarget))
   if (copyOtpBtn) copyOtpBtn.addEventListener('click', (e) => { if (currentCode) copyText(currentCode.replace(/\D/g, ''), e.currentTarget) })
   if (cancelBtn) cancelBtn.addEventListener('click', async () => {
-    if (!confirm('Cancel this number and get your money back?')) return
+    if (!(await ask('Cancel this number and get your money back?', { title: 'Cancel number', confirmText: 'Yes, cancel it', cancelText: 'Keep it', danger: true }))) return
     cancelBtn.disabled = true; cancelBtn.textContent = 'Cancelling...'
     errEl.classList.add('hidden')
     try {
