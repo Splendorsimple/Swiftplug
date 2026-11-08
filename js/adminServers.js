@@ -4,6 +4,10 @@
 import { supabase } from './supabaseClient.js'
 import { requireAdmin } from './authGuards.js'
 
+// Messages: use the site's toast and confirm sheet (ui.js), or the browser's plain boxes if ui.js is missing.
+const ask = (m, o) => (window.spUI ? window.spUI.confirm(m, o) : Promise.resolve(window.confirm(m)))
+const tell = (m, kind = 'error') => (window.spUI ? window.spUI.toast(m, kind) : window.alert(m))
+
 const nav = document.getElementById('admin-nav')
 const content = document.getElementById('admin-content')
 const esc = (v) => String(v ?? '').replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]))
@@ -98,7 +102,7 @@ async function render(note) {
       } catch (err) { msg.textContent = err.message; msg.style.color = '#e5484d'; b.disabled = false; b.textContent = 'Save' }
     })
     card.querySelector('.sv-del').addEventListener('click', async (e) => {
-      if (!confirm('Delete this server? Buyers will stop seeing it. Its prices are hidden, and past orders are not affected.')) return
+      if (!(await ask('Delete this server? Buyers will stop seeing it. Its prices are hidden, and past orders are not affected.', { title: 'Delete server', confirmText: 'Delete', danger: true }))) return
       const b = e.currentTarget; b.disabled = true
       const { error: de } = await supabase.from('servers').delete().eq('id', id)
       if (de) { msg.textContent = 'Could not delete: ' + de.message; msg.style.color = '#e5484d'; b.disabled = false; return }
@@ -114,3 +118,4 @@ if (session) {
     if (b && b.dataset.section === 'servers') render()
   })
 }
+
