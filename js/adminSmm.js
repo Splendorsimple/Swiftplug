@@ -3,6 +3,10 @@
 import { supabase } from './supabaseClient.js'
 import { SUPABASE_URL } from './config.js'
 
+// Messages: use the site's toast and confirm sheet (ui.js), or the browser's plain boxes if ui.js is missing.
+const ask = (m, o) => (window.spUI ? window.spUI.confirm(m, o) : Promise.resolve(window.confirm(m)))
+const tell = (m, kind = 'error') => (window.spUI ? window.spUI.toast(m, kind) : window.alert(m))
+
 const nav = document.getElementById('admin-nav')
 const content = document.getElementById('admin-content')
 const esc = (v) => String(v ?? '').replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]))
@@ -90,7 +94,7 @@ async function render() {
     await supabase.from('smm_providers').update({ is_active: b.dataset.on !== 'true' }).eq('id', b.dataset.tog); render()
   }))
   content.querySelectorAll('[data-del]').forEach(b => b.addEventListener('click', async () => {
-    if (!confirm('Delete this provider and all services imported from it? Past orders stay.')) return
+    if (!(await ask('Delete this provider and all services imported from it? Past orders stay.', { title: 'Delete provider', confirmText: 'Delete', danger: true }))) return
     await supabase.from('smm_providers').delete().eq('id', b.dataset.del); render()
   }))
   content.querySelectorAll('[data-edit]').forEach(b => b.addEventListener('click', () => {
@@ -122,8 +126,8 @@ async function render() {
   }))
   content.querySelectorAll('[data-bal]').forEach(b => b.addEventListener('click', async () => {
     b.disabled = true; b.textContent = 'Checking...'
-    try { const out = await callFn({ action: 'balance', provider_id: b.dataset.bal }); alert('Provider says: ' + JSON.stringify(out.raw).slice(0, 200)) }
-    catch (e) { alert(e.message) }
+    try { const out = await callFn({ action: 'balance', provider_id: b.dataset.bal }); tell('Provider says: ' + JSON.stringify(out.raw).slice(0, 200), 'info') }
+    catch (e) { tell(e.message) }
     b.disabled = false; b.textContent = 'Check balance'
   }))
 
@@ -180,4 +184,4 @@ async function render() {
   }
   $('#svc-q').addEventListener('input', () => { clearTimeout(window.__smmT); window.__smmT = setTimeout(loadServices, 300) })
   loadServices()
-                                                                                                                                               }
+}
