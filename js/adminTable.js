@@ -53,7 +53,7 @@ export function renderAdminTable(containerEl, { table, title, columns, hint }) {
 
   function cellHtml(col, row) {
     const v = row[col.key]
-    if (col.type === 'boolean') return v ? '<span class="badge on">Yes</span>' : '<span class="badge off">No</span>'
+    if (col.type === 'boolean') return `<input type="checkbox" data-live="${esc(col.key)}" data-rid="${esc(row.id)}" aria-label="${esc(col.label)}" ${v ? 'checked' : ''} />`
     if (col.mask && v) return '<span class="mono">\u2022\u2022\u2022\u2022\u2022\u2022 ' + esc(String(v).slice(-4)) + '</span>'
     return esc(v)
   }
@@ -99,6 +99,14 @@ export function renderAdminTable(containerEl, { table, title, columns, hint }) {
       containerEl.querySelector('#save-btn').addEventListener('click', save)
       containerEl.querySelector('#cancel-btn').addEventListener('click', cancel)
     }
+    containerEl.querySelectorAll('input[data-live]').forEach(chk => chk.addEventListener('change', async () => {
+      const key = chk.dataset.live, id = chk.dataset.rid, want = chk.checked
+      chk.disabled = true
+      const { error } = await supabase.from(table).update({ [key]: want }).eq('id', id)
+      chk.disabled = false
+      if (error) { chk.checked = !want; alert(error.message); return }
+      const row = rows.find(r => String(r.id) === id); if (row) row[key] = want
+    }))
     containerEl.querySelectorAll('[data-edit]').forEach(b => b.addEventListener('click', () => startEdit(rows.find(r => String(r.id) === b.dataset.edit))))
     containerEl.querySelectorAll('[data-del]').forEach(b => b.addEventListener('click', () => remove(b.dataset.del)))
   }
