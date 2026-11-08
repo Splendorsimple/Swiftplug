@@ -3,6 +3,10 @@
 import { supabase } from './supabaseClient.js'
 import { SUPABASE_URL } from './config.js'
 
+// Messages: use the site's toast and confirm sheet (ui.js), or the browser's plain boxes if ui.js is missing.
+const ask = (m, o) => (window.spUI ? window.spUI.confirm(m, o) : Promise.resolve(window.confirm(m)))
+const tell = (m, kind = 'error') => (window.spUI ? window.spUI.toast(m, kind) : window.alert(m))
+
 const nav = document.getElementById('admin-nav')
 const content = document.getElementById('admin-content')
 const esc = (v) => String(v ?? '').replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]))
@@ -76,8 +80,8 @@ async function render() {
     } finally { btn.disabled = false; btn.textContent = 'Preview' }
   })
   applyBtn.addEventListener('click', async () => {
-    if ($('#imp-provider').value !== lastKey) { alert('Provider changed. Tap Preview again first.'); return }
-    if (!confirm('Create and update prices now?')) return
+    if ($('#imp-provider').value !== lastKey) { tell('Provider changed. Tap Preview again first.'); return }
+    if (!(await ask('Create and update prices now?', { title: 'Import prices', confirmText: 'Import now' }))) return
     applyBtn.disabled = true; applyBtn.textContent = 'Importing...'
     try {
       const r = await call('apply')
