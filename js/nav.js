@@ -43,6 +43,8 @@ const soon = (icon, label) =>
 const section = (icon, title, body) =>
   `<div class="nb-sec"><div class="nb-sec-title">${svg(icon)}<span>${title}</span></div>${body}</div>`
 
+import('./ui.js').catch(() => { /* messages fall back to the browser boxes */ })
+
 export async function renderNavbar() {
   initTheme()
   const el = document.getElementById('navbar')
@@ -206,5 +208,4 @@ export async function renderNavbar() {
       }
     })().catch(() => { /* keep the placeholder */ })
   }
-      }
-          
+       }
