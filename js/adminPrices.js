@@ -4,6 +4,10 @@
 import { supabase } from './supabaseClient.js'
 import { SUPABASE_URL } from './config.js'
 
+// Messages: use the site's toast and confirm sheet (ui.js), or the browser's plain boxes if ui.js is missing.
+const ask = (m, o) => (window.spUI ? window.spUI.confirm(m, o) : Promise.resolve(window.confirm(m)))
+const tell = (m, kind = 'error') => (window.spUI ? window.spUI.toast(m, kind) : window.alert(m))
+
 const esc = (v) => String(v ?? '').replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]))
 const naira = (n) => '₦' + Number(n || 0).toLocaleString('en-NG', { maximumFractionDigits: 2 })
 const PAGE = 40
@@ -111,23 +115,23 @@ export async function mountPrices(root) {
       const id = rs.closest('[data-id]').dataset.id
       rs.disabled = true; rs.textContent = '...'
       const { error } = await supabase.from('pricing').update({ price_locked: false }).eq('id', id)
-      if (error) { alert('Could not reset: ' + error.message); rs.disabled = false; rs.textContent = 'Use rule'; return }
+      if (error) { tell('Could not reset: ' + error.message); rs.disabled = false; rs.textContent = 'Use rule'; return }
       try {
         const { data: { session } } = await supabase.auth.getSession()
         const res = await fetch(`${SUPABASE_URL}/functions/v1/set-pricing`, { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` }, body: '{"reprice_only":true}' })
         if (!res.ok) throw new Error((await res.json()).error || 'failed')
-      } catch (err) { alert('Unlocked, but the new price was not calculated: ' + err.message) }
+      } catch (err) { tell('Unlocked, but the new price was not calculated: ' + err.message) }
       await load(); return
     }
     const save = e.target.closest('.ps-save')
     if (!save) return
     const card = save.closest('[data-id]'), id = card.dataset.id
     const price = Number(card.querySelector('.ps-price').value)
-    if (!(price >= 0)) { alert('Enter a price of 0 or more.'); return }
+    if (!(price >= 0)) { tell('Enter a price of 0 or more.'); return }
     save.disabled = true; save.textContent = '...'
     const { data, error } = await supabase.from('pricing').update({ sell_price: price }).eq('id', id).select('sell_price,price_locked').single()
     save.disabled = false
-    if (error) { save.textContent = 'Save'; alert('Could not save: ' + error.message); return }
+    if (error) { save.textContent = 'Save'; tell('Could not save: ' + error.message); return }
     const row = rows.find(r => r.id === id); if (row) Object.assign(row, data)
     save.textContent = 'Saved'; setTimeout(() => { draw() }, 700)
   })
@@ -136,7 +140,7 @@ export async function mountPrices(root) {
     if (!on) return
     const id = on.closest('[data-id]').dataset.id
     const { error } = await supabase.from('pricing').update({ is_active: on.checked }).eq('id', id)
-    if (error) { alert('Could not change: ' + error.message); on.checked = !on.checked; return }
+    if (error) { tell('Could not change: ' + error.message); on.checked = !on.checked; return }
     const row = rows.find(r => r.id === id); if (row) row.is_active = on.checked
     on.closest('[data-id]').style.opacity = on.checked ? '' : '.55'
   })
@@ -151,9 +155,10 @@ export async function mountPrices(root) {
       })
       const out = await res.json()
       if (!res.ok) throw new Error(out.error || 'Refresh failed')
-    } catch (err) { alert(err.message) }
+    } catch (err) { tell(err.message) }
     b.disabled = false; b.textContent = 'Refresh stock now'
     await load()
   })
   await load()
-                              }
+        }
+          
