@@ -1064,3 +1064,16 @@ body.tb-on { padding-bottom: calc(150px + env(safe-area-inset-bottom)); }
 .an-legend i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; }
 .field.consent label { text-transform: none !important; letter-spacing: 0 !important; }
 .field.consent label a { text-transform: none; letter-spacing: 0; }
+/* ===== Round 4: fixes from the Hallmark and Impeccable checkers (same colours) ===== */
+/* Disabled buttons: not only faded, also greyed with a blocked cursor and no glow */
+.btn-primary:disabled, .btn-secondary:disabled, .btn-outline:disabled,
+.number-card .btn-copy:disabled, .number-card .btn-cancel:disabled { opacity: .55; filter: grayscale(.85); cursor: not-allowed; box-shadow: none; transform: none; }
+/* Menu group labels were under 11px */
+.admin-sidebar .adm-grp { font-size: .75rem; }
+.wh-day { font-size: .75rem; }
+/* Chart bars: no height animation */
+.an-bar span { transition: none; }
+/* Dark theme: plain depth shadows instead of coloured glows */
+html:not(.light) .btn-primary { box-shadow: 0 6px 16px rgba(0, 0, 0, .35); }
+html:not(.light) .hm-tile.main .hm-ti { box-shadow: 0 6px 16px rgba(0, 0, 0, .35); }
+html:not(.light) .sp-fab, html:not(.light) .tb-main .tb-ic { box-shadow: 0 6px 16px rgba(0, 0, 0, .4); }
