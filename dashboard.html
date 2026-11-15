@@ -126,17 +126,48 @@
     </div>
 
     <!-- WALLET -->
-    <div id="section-wallet" class="hidden">
-      <div class="card" style="margin-bottom:20px">
-        <h3 style="margin-top:0">Top up wallet</h3>
+    <div id="section-wallet" class="hidden wl">
+      <div class="wl-head"><h1>Wallet</h1><p>Add money and see where it goes.</p></div>
+
+      <div class="wl-card">
+        <div class="wl-top"><span>Wallet balance</span><button type="button" id="wl-eye" class="hm-eye" aria-label="Show or hide balance"></button></div>
+        <div class="wl-amt mono" id="wl-balance">₦0</div>
+        <button type="button" class="wl-add" id="wl-scroll">+ Add money</button>
+      </div>
+
+      <div class="wl-safe c-mint">
+        <span class="wl-safe-ic"><svg viewBox="0 0 24 24"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M9 12l2 2 4-4"/></svg></span>
+        <div><b>Your money is safe</b><p>It only leaves your wallet when you buy something. If a number fails, it is refunded.</p></div>
+      </div>
+
+      <div class="wl-two">
+        <div class="v5-stat c-mint"><span class="v5-sic"><svg viewBox="0 0 24 24"><path d="M12 4v12M6 11l6 6 6-6"/><path d="M5 20h14"/></svg></span><small>Total added</small><b class="mono" id="wl-in">₦0</b></div>
+        <div class="v5-stat c-coral"><span class="v5-sic"><svg viewBox="0 0 24 24"><rect x="7" y="2" width="10" height="20" rx="3"/><path d="M11 18h2"/></svg></span><small>Total spent</small><b class="mono" id="wl-out">₦0</b></div>
+      </div>
+
+      <div class="card wl-top-up" id="wl-topup">
+        <h3>Add money</h3>
         <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px" id="amount-presets"></div>
-        <div class="field"><input type="number" id="topup-amount" min="100" value="1000" /></div>
+        <div class="field"><label for="topup-amount">Amount</label><input type="number" id="topup-amount" min="100" value="1000" /></div>
         <button class="btn-primary" id="pay-btn">Pay ₦1,000</button>
         <p id="topup-msg" class="muted" style="margin-top:8px"></p>
       </div>
-      <h3>History</h3>
+
+      <div id="history" class="wl-hist-head"><h2>History</h2></div>
+      <div class="wl-tabs" id="wl-tabs">
+        <button type="button" class="active" data-f="all">All</button>
+        <button type="button" data-f="in">Money in</button>
+        <button type="button" data-f="out">Money out</button>
+      </div>
       <div id="wallet-history" class="card" style="padding:0"></div>
       <p id="no-tx-msg" class="muted hidden">No transactions yet.</p>
+
+      <div class="wl-faq">
+        <h2>Questions</h2>
+        <details><summary>How long does adding money take?</summary><p>Usually a few seconds after Paystack confirms your payment. If your wallet has not updated after a few minutes, contact support with your payment receipt.</p></details>
+        <details><summary>What is the smallest amount I can add?</summary><p>₦100 per top-up.</p></details>
+        <details><summary>Can I get my money back?</summary><p>If a number or order fails, it is refunded to your wallet automatically. See the Refunds page for the full rules.</p></details>
+      </div>
     </div>
   </section>
 </main>
