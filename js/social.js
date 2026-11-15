@@ -3,6 +3,7 @@ import { SUPABASE_URL } from './config.js'
 import { renderNavbar } from './nav.js'
 import { requireAuth } from './authGuards.js'
 import { fmt } from './currency.js'
+import { fillIcon } from './serviceMeta.js'
 
 // Messages: use the site's toast and confirm sheet (ui.js), or the browser's plain boxes if ui.js is missing.
 const ask = (m, o) => (window.spUI ? window.spUI.confirm(m, o) : Promise.resolve(window.confirm(m)))
@@ -14,7 +15,7 @@ const session = await requireAuth()
 const $ = (id) => document.getElementById(id)
 const esc = (v) => String(v ?? '').replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]))
 let services = []
-let platform = null
+let platform = ''   // '' means All platforms
 let current = null
 
 async function callFn(name, body) {
@@ -48,27 +49,44 @@ function total() {
   if (!current || q < 1) return 0
   return Math.round(Number(current.sell_per_1000) * q / 1000 * 100) / 100
 }
-function paintTotal() { $('sb-total').textContent = fmt(total()) }
+function paintTotal() { $('sb-total').textContent = total() > 0 ? fmt(total()) : '\u2014' }
 
+function visible() {
+  const q = $('sb-search').value.trim().toLowerCase()
+  return services.filter(s => (!platform || s.platform === platform) && (!q || String(s.name).toLowerCase().includes(q)))
+}
 function drawServices() {
-  const list = services.filter(s => s.platform === platform)
-  $('sb-service').innerHTML = list.map(s => `<option value="${esc(s.id)}">${esc(s.name)}</option>`).join('')
+  const list = visible()
+  $('sb-service').innerHTML = '<option value="">Select a service\u2026</option>' + list.map(s => `<option value="${esc(s.id)}">${esc(s.name)}</option>`).join('')
+  $('sb-count').textContent = list.length ? `${list.length.toLocaleString()} service${list.length === 1 ? '' : 's'} found` : 'No service matches. Try another word or platform.'
   pick()
 }
 function pick() {
   current = services.find(s => s.id === $('sb-service').value) || null
-  if (!current) return
+  if (!current) {
+    $('sb-limits').textContent = 'Pick a service to see the minimum and maximum.'
+    paintTotal(); return
+  }
   $('sb-limits').textContent = `${fmt(current.sell_per_1000)} per 1,000. Minimum ${Number(current.min_qty).toLocaleString()}, maximum ${Number(current.max_qty).toLocaleString()}.`
   const q = Number($('sb-qty').value) || 0
-  if (q < current.min_qty) $('sb-qty').value = current.min_qty
+  if (q && q < current.min_qty) $('sb-qty').value = current.min_qty
+  $('sb-qty').placeholder = `${Number(current.min_qty).toLocaleString()} to ${Number(current.max_qty).toLocaleString()}`
   paintTotal()
 }
 function drawPlatforms() {
   const counts = {}
   services.forEach(s => { counts[s.platform] = (counts[s.platform] || 0) + 1 })
   const names = Object.keys(counts).sort((a, b) => counts[b] - counts[a])
-  if (!platform || !counts[platform]) platform = names[0]
-  $('sb-platforms').innerHTML = names.map(n => `<button type="button" class="sb-chip${n === platform ? ' active' : ''}" data-p="${esc(n)}">${esc(n)}</button>`).join('')
+  if (platform && !counts[platform]) platform = ''
+  const chip = (n, label) => `<button type="button" class="sb-chip${n === platform ? ' active' : ''}" data-p="${esc(n)}"><span class="sb-ci" data-ic="${esc(n)}"></span>${esc(label)}</button>`
+  $('sb-platforms').innerHTML = chip('', 'All') + names.map(n => chip(n, n)).join('')
+  $('sb-platforms').querySelectorAll('.sb-ci').forEach(el => {
+    const n = el.dataset.ic
+    if (!n) { el.innerHTML = '<svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h10M4 17h16"/></svg>'; return }
+    const holder = document.createElement('span'); holder.className = 'service-icon'
+    fillIcon(holder, { name: n })
+    el.appendChild(holder)
+  })
 }
 
 async function loadCatalog() {
@@ -109,6 +127,13 @@ $('sb-platforms').addEventListener('click', (e) => {
 })
 $('sb-service').addEventListener('change', pick)
 $('sb-qty').addEventListener('input', paintTotal)
+$('sb-search').addEventListener('input', drawServices)
+$('sb-info-tabs').addEventListener('click', (e) => {
+  const b = e.target.closest('button[data-t]'); if (!b) return
+  document.querySelectorAll('#sb-info-tabs button').forEach(x => x.classList.toggle('active', x === b))
+  $('sb-how').classList.toggle('hidden', b.dataset.t !== 'how')
+  $('sb-tips').classList.toggle('hidden', b.dataset.t !== 'tips')
+})
 $('sb-refresh').addEventListener('click', (e) => refreshOrders(e.currentTarget))
 
 $('sb-buy').addEventListener('click', async (e) => {
@@ -116,6 +141,7 @@ $('sb-buy').addEventListener('click', async (e) => {
   const link = $('sb-link').value.trim()
   const qty = Math.floor(Number($('sb-qty').value) || 0)
   if (!current) return say('Choose a service first.', true)
+  if (!qty) return say('Enter how many you want.', true)
   if (!link) return say('Paste your link or username.', true)
   if (qty < current.min_qty || qty > current.max_qty) return say(`Quantity must be between ${current.min_qty} and ${current.max_qty}.`, true)
   if (!(await ask(`Order ${qty.toLocaleString()} for ${fmt(total())}?\n\n${current.name}\n${link}`, { title: 'Place this order?', confirmText: 'Place order' }))) return
@@ -124,13 +150,21 @@ $('sb-buy').addEventListener('click', async (e) => {
     await callFn('smm-order', { service_id: current.id, link, quantity: qty })
     say('Order placed. Track it under My orders.', false)
     $('sb-link').value = ''
-    await loadOrders()
+    await loadOrders(); loadBal()
   } catch (err) {
     say(err.message, true, err.status === 402 || /insufficient/i.test(err.message || ''))
   }
   btn.disabled = false; btn.textContent = 'Place order'
 })
 
+async function loadBal() {
+  const { data } = await supabase.from('profiles').select('wallet_balance').eq('id', session.user.id).single()
+  if (data) { $('sb-bal').dataset.v = fmt(data.wallet_balance); window.dispatchEvent(new Event('sp-bal-change')) }
+}
+loadBal()
 await loadCatalog()
 await loadOrders()
 refreshOrders()
+
+if (location.hash === '#orders') document.getElementById('orders')?.scrollIntoView()
+  
