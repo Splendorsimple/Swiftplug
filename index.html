@@ -24,20 +24,28 @@
 <div id="navbar" class="navbar"></div>
 
 <main class="container hm">
-  <div id="home-hi" class="hm-hi hidden"><span id="home-greet">Hello</span><h1 id="home-name">Hi</h1></div>
+  <div id="home-hi" class="hm-hi hidden"><span id="home-greet">Hello</span><h1 id="home-name">Hi</h1><p>Here's a quick look at your account.</p></div>
 
   <section id="home-balance" class="hm-bal hidden">
-    <div class="hm-bal-top"><span>Available balance</span><button type="button" id="home-eye" class="hm-eye" aria-label="Show or hide balance"></button></div>
+    <div class="hm-bal-top"><span>Wallet balance</span><button type="button" id="home-eye" class="hm-eye" aria-label="Show or hide balance"></button></div>
     <div class="hm-amt mono" id="home-balance-amt">₦0</div>
-    <div class="hm-bal-btns">
-      <a class="hm-fund" href="dashboard.html?section=wallet"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg> Fund wallet</a>
-      <a class="hm-hist" href="dashboard.html?section=wallet" aria-label="History"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></a>
+    <div class="hm-bal-btns3">
+      <a class="hm-b3 main" href="dashboard.html?section=wallet"><span class="hm-b3i"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></span>Add money</a>
+      <a class="hm-b3" href="dashboard.html"><span class="hm-b3i"><svg viewBox="0 0 24 24"><rect x="7" y="2" width="10" height="20" rx="3"/><path d="M11 18h2"/></svg></span>Get a number</a>
+      <div class="hm-b3 soon"><span class="hm-b3i"><svg viewBox="0 0 24 24"><path d="M6 7h12l1 14H5z"/><path d="M9 7a3 3 0 0 1 6 0"/></svg></span>Buy accounts<em>SOON</em></div>
     </div>
   </section>
 
   <section class="hm-card">
-    <div class="hm-head"><h2>Quick services</h2></div>
+    <div class="hm-head"><h2>Quick actions</h2></div>
     <div id="home-tiles" class="hm-tiles"></div>
+  </section>
+
+  <section id="home-stats" class="v5-stats hidden"></section>
+
+  <section id="home-activity" class="hm-card hidden">
+    <div class="hm-head v5-head"><div><h2>Recent activity</h2><p>Your latest wallet movements.</p></div><a class="v5-more" href="dashboard.html?section=wallet#history">All transactions &rarr;</a></div>
+    <div id="home-rows"></div>
   </section>
 
   <section class="hm-card">
@@ -47,9 +55,10 @@
     <p id="home-empty" class="muted hidden" style="margin-top:20px">No services yet. Check back soon.</p>
   </section>
 
-  <section id="home-history" class="hm-card hidden">
-    <div class="hm-head"><h2>History</h2></div>
-    <div id="home-rows"></div>
+  <section class="hm-card v5-promo" id="home-promo">
+    <div class="v5-promo-top"><h2>Why SwiftPlug</h2><div class="v5-arrows"><button type="button" id="promo-prev" aria-label="Previous"><svg viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg></button><button type="button" id="promo-next" aria-label="Next"><svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></button></div></div>
+    <div class="v5-promo-body"><span class="v5-promo-ic" id="promo-ic"></span><div><b id="promo-t"></b><p id="promo-d"></p></div></div>
+    <div class="v5-dots" id="promo-dots"></div>
   </section>
 </main>
 
