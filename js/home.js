@@ -40,7 +40,7 @@ const TILES = [
   { t: 'My numbers', i: 'mobile', href: 'dashboard.html?section=mine', c: 'mint' },
   { t: 'Social Boost', i: 'rocket', href: 'social.html', c: 'violet' },
   { t: 'Wallet', i: 'card', href: 'dashboard.html?section=wallet', c: 'mint' },
-  { t: 'Buy accounts', i: 'bag', soon: true, c: 'amber' },
+  { t: 'Buy accounts', i: 'bag', href: 'accounts.html', c: 'amber' },
   { t: 'Telegram Premium', i: 'send', soon: true, c: 'amber' },
   { t: 'Support', i: 'chat', support: true, c: 'coral' }
 ]

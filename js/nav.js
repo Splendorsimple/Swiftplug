@@ -85,7 +85,7 @@ export async function renderNavbar() {
       item('dashboard.html', 'phone', 'One-time numbers', 'sky') +
       item('dashboard.html?kind=real', 'clock', 'Longer-term numbers', 'mint') +
       item('social.html', 'rocket', 'Social Boost', 'violet') +
-      soon('bag', 'Buy accounts') +
+      item('accounts.html', 'bag', 'Buy accounts', 'amber') +
       soon('send', 'Telegram Premium'))}
     ${section('WALLET',
       item('dashboard.html?section=wallet', 'card', 'Add money', 'mint') +
