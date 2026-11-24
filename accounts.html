@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Buy accounts — SwiftPlug</title>
+<link rel="icon" href="assets/favicon.png" />
+<meta name="description" content="Fast, reliable, secure and cheap virtual numbers. One-time and long-term numbers, with codes delivered to your screen. Pick. Buy. Copy." />
+<meta name="theme-color" content="#0c1c14" />
+<link rel="manifest" href="manifest.json" />
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png" />
+<meta property="og:type" content="website" /><meta property="og:site_name" content="SwiftPlug" />
+<meta property="og:title" content="Buy accounts — SwiftPlug" /><meta property="og:description" content="Fast, reliable, secure and cheap virtual numbers. One-time and long-term numbers, with codes delivered to your screen. Pick. Buy. Copy." />
+<meta property="og:url" content="https://swiftplug.vercel.app/accounts.html" /><meta property="og:image" content="https://swiftplug.vercel.app/assets/og-image.jpg" />
+<meta property="og:image:width" content="1200" /><meta property="og:image:height" content="630" />
+<meta name="twitter:card" content="summary_large_image" /><meta name="twitter:title" content="Buy accounts — SwiftPlug" />
+<meta name="twitter:description" content="Fast, reliable, secure and cheap virtual numbers. One-time and long-term numbers, with codes delivered to your screen. Pick. Buy. Copy." /><meta name="twitter:image" content="https://swiftplug.vercel.app/assets/og-image.jpg" />
+<meta name="robots" content="noindex, nofollow" />
+
+<link rel="preconnect" href="https://fonts.googleapis.com" /><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+<div id="navbar" class="navbar"></div>
+
+<main class="container sb">
+  <div class="sb-hero">
+    <h1>Buy accounts</h1>
+    <p>Pick a category, choose how many, and your login details appear here right after you pay.</p>
+    <a class="sb-hist-btn" href="#orders"><svg viewBox="0 0 24 24"><path d="M8 6h12M8 12h12M8 18h12M3 6h.01M3 12h.01M3 18h.01"/></svg> My accounts</a>
+  </div>
+
+  <section class="sb-card" id="sb-form-card">
+    <div id="sb-platforms" class="sb-chips sb-chips-wrap"></div>
+
+    <div class="v5-search"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg><input id="sb-search" type="search" placeholder="Search accounts" autocomplete="off" /></div>
+
+    <div class="field"><label for="sb-service">Account</label><select id="sb-service"></select></div>
+    <p class="muted sb-note" id="sb-count"></p>
+
+    <div class="field"><label for="sb-qty">How many</label><input id="sb-qty" type="number" inputmode="numeric" min="1" value="1" />
+      <small class="sb-limits" id="sb-limits">Pick an account to see the price and what is left.</small></div>
+
+    <div class="sb-total"><span>Charge</span><b class="mono" id="sb-total">&mdash;</b></div>
+    <div class="sb-pay"><span class="sb-pay-l">Paying from</span><span class="sb-pay-w"><b>Wallet</b><span class="mono js-bal" id="sb-bal" data-v="₦ …">₦ …</span></span></div>
+    <button class="btn-primary" id="sb-buy" type="button">Buy now</button>
+    <p id="sb-msg" class="sb-msg hidden"></p>
+  </section>
+
+  <section class="sb-card hidden" id="sb-empty">
+    <h3 style="margin-top:0">Not available right now</h3>
+    <p class="muted" style="margin-bottom:0">Accounts aren't available at the moment. Please check back soon.</p>
+  </section>
+
+  <section class="sb-card" id="sb-info">
+    <div class="wl-tabs" id="sb-info-tabs"><button type="button" class="active" data-t="how">How it works</button><button type="button" data-t="tips">Good to know</button></div>
+    <ol class="sb-steps" id="sb-how">
+      <li><b>Pick a category and account</b><span>Use the chips and the search box to find what you want.</span></li>
+      <li><b>Choose how many</b><span>The charge updates as you type.</span></li>
+      <li><b>Buy</b><span>Your wallet pays and the login details appear under My accounts.</span></li>
+      <li><b>Save your details</b><span>Copy them and change the password as soon as you log in.</span></li>
+    </ol>
+    <ul class="sb-steps hidden" id="sb-tips">
+      <li><b>Refunds</b><span id="sb-refund-note">Problem with an account? Report it within 24 hours.</span></li>
+      <li><b>Not delivered? Refunded</b><span>If an order cannot be completed, your money goes back to your wallet automatically.</span></li>
+      <li><b>Need help?</b><span>Tap the Help button and tell us your order.</span></li>
+    </ul>
+  </section>
+
+  <section class="sb-card" id="orders">
+    <div class="sb-head"><h2>My accounts</h2><button type="button" class="pill-btn" id="sb-refresh">Refresh</button></div>
+    <div id="sb-orders"></div>
+  </section>
+</main>
+
+<footer>
+  <a href="terms.html">Terms</a>
+  <a href="privacy.html">Privacy</a>
+  <a href="refunds.html">Refunds</a>
+</footer>
+
+<script type="module" src="js/accounts.js"></script>
+</body>
+</html>
